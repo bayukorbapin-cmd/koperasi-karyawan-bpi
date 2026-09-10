@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Koperasi BPI &amp; Persediaan</title>
+<title>FA Tax and Accounting &amp; Persediaan — Lokal</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -187,9 +187,10 @@ tfoot td.txt{text-align:left;}
 <div id="loginOverlay">
   <div class="login-card">
     <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#123A6B" stroke-width="1.8"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5"/><path d="M8 13h8M8 17h5"/></svg></div>
-    <h2>Koperasi BPI</h2>
+    <h2>FA Tax and Accounting <span style="display:block; font-size:11px; color:#B45309; font-weight:700; letter-spacing:.04em;">VERSI TRIAL — maks. 80 transaksi</span></h2>
     <p style="margin-bottom:4px;">hak cipta : Bayu Ferdianto</p>
     <p>Masukkan kode &amp; password untuk masuk</p>
+    <p style="font-size:11.5px; color:#5B7191;">Login demo (staf): kode <b>demo</b> / password <b>DEMO</b></p>
     <form id="formLogin">
       <div class="field"><label>Kode Login</label><input type="text" id="loginKode" autocomplete="off" required></div>
       <div class="field"><label>Password</label><input type="password" id="loginPassword" autocomplete="off" required></div>
@@ -204,12 +205,15 @@ tfoot td.txt{text-align:left;}
 <nav class="sidebar">
   <div class="brand">
     <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#123A6B" stroke-width="1.8"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5"/><path d="M8 13h8M8 17h5"/></svg></div>
-    <div><b>Koperasi BPI</b><span>Sinkron real-time (Supabase)</span><span style="display:block;">hak cipta : Bayu Ferdianto</span></div>
+    <div><b>FA Tax and Accounting</b><span>Sinkron real-time (Supabase)</span><span style="display:block;">hak cipta : Bayu Ferdianto</span></div>
   </div>
 
   <div style="padding:10px 18px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
     <span id="loggedInAs" style="font-size:11px; color:#B9CBE6;"></span>
     <button type="button" id="btnLogout" class="btn-ghost" style="font-size:11px; padding:4px 9px; border-color:#3E5A83; color:#DCE7F7;">Keluar</button>
+  </div>
+  <div style="padding:6px 18px 10px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:6px;">
+    <span id="demoBadge" style="font-size:11px; font-weight:700; color:#FFD166;"></span>
   </div>
   <button class="navitem top active" data-target="dashboard">Dashboard</button>
 
@@ -2573,8 +2577,8 @@ tfoot td.txt{text-align:left;}
    (Supabase Dashboard > Project Settings > API). Selama masih bertuliskan
    'GANTI-...' aplikasi akan tetap jalan normal seperti sebelumnya (localStorage saja,
    tanpa sinkron ke perangkat lain). Lihat README.md untuk langkah setup lengkap. */
-const SUPABASE_URL = 'https://zeomgmkdnbvuuldgaseg.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Ay8_l-7Ig8Nz7zmFiTNK0w_NEkqIKAW';
+const SUPABASE_URL = 'https://cegdhyywumtabamzufch.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_XmtsS4sb0XTvntGghVuqDg_NVeuX8EV';
 
 let sbClient = null;
 try{
@@ -2789,6 +2793,17 @@ let pphKoreksiTransaksiData = ld(LS.pphKoreksiTransaksi, {});
 let cfProjeksiList = ld(LS.cfProjeksi, []);
 let masaKerjaPajakList = ld(LS.masaKerjaPajak, []);
 let seq = parseInt(localStorage.getItem(LS.seq) || '0', 10);
+/* ===== VERSI TRIAL: dibatasi maksimal 80 transaksi ===== */
+const DEMO_MODE = true;
+const DEMO_MAX_TRANSAKSI = 80;
+function updateDemoBadge(){
+  const el = document.getElementById('demoBadge');
+  if(!el) return;
+  if(!DEMO_MODE){ el.textContent=''; return; }
+  const sisa = Math.max(0, DEMO_MAX_TRANSAKSI - seq);
+  el.style.color = sisa<=10 ? '#FF6B6B' : '#FFD166';
+  el.textContent = 'VERSI TRIAL — Transaksi: '+Math.min(seq,DEMO_MAX_TRANSAKSI)+' / '+DEMO_MAX_TRANSAKSI+(sisa===0?' (batas tercapai)':'');
+}
 let editingBarangId=null, editingSatuanBarangId=null, editingVendorId=null, editingCustomerId=null, editingAkunId=null, editingKopAnggotaId=null, editingPenjualanId=null, editingPembelianId=null, editingProjekId=null, editingHargaJualId=null, editingJabatanId=null;
 
 const defaultSettings = {
@@ -2809,7 +2824,10 @@ const defaultSettings = {
     ppnRekon:{prefix:'RPN-',digits:4,next:1}, pphBadan:{prefix:'PPB-',digits:4,next:1}, stockOpname:{prefix:'SOP-',digits:4,next:1},
     penerimaanBarang:{prefix:'PB-',digits:4,next:1}, suratJalan:{prefix:'SJ-',digits:4,next:1}
   },
-  akses:{ accounts:[ { id:'admin-default', nama:'Admin', kode:'123', password:'123', allowedGroups:['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'] } ] }
+  akses:{ accounts:[
+    { id:'admin-default', nama:'Admin', kode:'123', password:'123', allowedGroups:['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'] },
+    { id:'demo-default', nama:'User Demo', kode:'demo', password:'DEMO', allowedGroups:['2','3','4','5','6','7','8','9','10','11','12','13','14','15'] }
+  ] }
 };
 let settings = ld(LS.settings, null);
 if(!settings){
@@ -2892,7 +2910,14 @@ const save = {
   masaKerjaPajak:()=>localStorage.setItem(LS.masaKerjaPajak, JSON.stringify(masaKerjaPajakList)),
   settings:()=>localStorage.setItem(LS.settings, JSON.stringify(settings))
 };
-function nextSeq(){ seq += 1; localStorage.setItem(LS.seq, String(seq)); return seq; }
+function nextSeq(){
+  if(DEMO_MODE && seq >= DEMO_MAX_TRANSAKSI){
+    updateDemoBadge();
+    alert('Versi TRIAL ini dibatasi maksimal '+DEMO_MAX_TRANSAKSI+' transaksi.\n\nData yang sudah ada tetap bisa dilihat/dicetak, tapi transaksi baru tidak bisa ditambahkan lagi di versi trial ini.\nHubungi kami untuk mendapatkan versi lengkap tanpa batas.');
+    throw new Error('DEMO_LIMIT_REACHED');
+  }
+  seq += 1; localStorage.setItem(LS.seq, String(seq)); updateDemoBadge(); return seq;
+}
 function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function formatRupiah(n){ return 'Rp ' + Math.round(n||0).toLocaleString('id-ID'); }
 function formatRibuan(str){ const digits = String(str==null?'':str).replace(/[^\d]/g,''); if(!digits) return ''; return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
@@ -3607,6 +3632,7 @@ function applyAksesRestriction(){
   }
   const badge = document.getElementById('loggedInAs');
   if(badge) badge.textContent = acc ? ('Masuk sebagai: '+(acc.nama||acc.kode)) : '';
+  updateDemoBadge();
 }
 
 /* ============================================================= 1b. AKUN PENTING ============================================================= */
@@ -3679,6 +3705,7 @@ function cetakLaporanPdf(title, headers, rows, opts){
   opts = opts || {};
   const s = settings;
   const logoHtml = s.desain.logoDataUrl ? `<img src="${s.desain.logoDataUrl}" style="height:75px; max-width:200px; object-fit:contain;">` : '';
+  const theadHtml = '<tr>' + headers.map(h=>`<th>${h}</th>`).join('') + '</tr>';
   const tbodyHtml = rows.map(r=>'<tr>'+r.map(c=>`<td>${c===undefined||c===null||c===''?'-':c}</td>`).join('')+'</tr>').join('');
   const signHtml = opts.signKey ? buildSignatureBlock(opts.signKey) : '';
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>
