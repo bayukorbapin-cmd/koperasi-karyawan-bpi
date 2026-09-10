@@ -5135,7 +5135,7 @@ function updatePreviewPenjualan(){
   document.getElementById('sEstimasiHpp').innerHTML = `Estimasi HPP (FIFO): <b>${formatRupiah(hppEstTotal)}</b>${shortageNote}`;
 }
 function renderPenjualan(){
-  populateBarangSelects(); populateCustomerSelects(); populateProjekSelects(); populatePesananSelects(); populateAkunSelects();
+  populateBarangSelects(); populateCustomerSelects(); populateProjekSelects(); populatePesananSelects(); populateAkunSelects(); populateKopAnggotaSelects();
   renderSPenjualanItems(); updatePreviewPenjualan();
   const tbody=document.getElementById('tbodyPenjualan'), empty=document.getElementById('emptyPenjualan');
   if(!penjualanList.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
