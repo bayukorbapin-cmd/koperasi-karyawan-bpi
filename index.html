@@ -3424,7 +3424,7 @@ function umPenjualanSisa(customerId){ return umPenjualanDiterima(customerId) - u
 function umPembelianDibayar(vendorId){ return uangMukaPembelianList.filter(u=>u.vendorId===vendorId).reduce((s,u)=>s+u.jumlah,0); }
 function umPembelianTerpakai(vendorId){ return apPaymentList.filter(r=>r.metode==='uangmuka' && r.vendorId===vendorId).reduce((s,r)=>s+r.jumlah,0); }
 function umPembelianSisa(vendorId){ return umPembelianDibayar(vendorId) - umPembelianTerpakai(vendorId); }
-function itemLabel(it){ return it.tipe==='barang' ? (getBarang(it.barangId)?getBarang(it.barangId).nama:'(barang dihapus)') : (it.deskripsiJasa||'(jasa)'); }
+function itemLabel(it){ return it.barangId ? (getBarang(it.barangId)?getBarang(it.barangId).nama:'(barang dihapus)') : (it.deskripsiJasa||'(jasa)'); }
 function invoiceItemsSummary(inv){ return (inv.items||[]).map(it=>`${itemLabel(it)} (${it.qty})`).join(', '); }
 
 /* ============================================================= MIGRATION: single-item -> multi-item invoices ============================================================= */
@@ -4565,7 +4565,7 @@ function buildJurnal(){
     lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId:role('piutang'), debit:tot.total, kredit:0, projekId:s.projekId||null, customerId:s.customerId});
     const revGroup = {};
     items.forEach(it=>{ const amt=(it.qty||0)*(it.harga||0); if(amt<=0) return;
-      const akunId = it.tipe==='barang' ? ((getBarang(it.barangId)||{}).akunPenjualan || role('penjualan')) : role('penjualan');
+      const akunId = it.barangId ? ((getBarang(it.barangId)||{}).akunPenjualan || role('penjualan')) : role('penjualan');
       revGroup[akunId] = (revGroup[akunId]||0)+amt; });
     Object.keys(revGroup).forEach(akunId=> lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId, debit:0, kredit:revGroup[akunId], projekId:s.projekId||null, customerId:s.customerId}));
     if(tot.diskon>0) lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId:role('diskonPenjualan'), debit:tot.diskon, kredit:0, projekId:s.projekId||null, customerId:s.customerId});
@@ -5040,14 +5040,15 @@ document.getElementById('btnCetakLapBBPdf').addEventListener('click', ()=>{
 let sPenjualanItems = [{tipe:'barang', barangId:'', deskripsiJasa:'', qty:1, harga:0}];
 function renderSPenjualanItems(){
   const barangOpts = barangList.map(b=>`<option value="${b.id}">${b.kode} — ${b.nama}</option>`).join('');
+  const jasaOpts = barangList.filter(b=>(b.jenis||'persediaan')==='jasa').map(b=>`<option value="${b.id}">${b.kode} — ${b.nama}</option>`).join('');
   document.getElementById('sItemsWrap').innerHTML = sPenjualanItems.map((it,i)=>{
     const namaCell = it.tipe==='barang'
       ? `<select onchange="sPenjualanItems[${i}].barangId=this.value; terapkanHargaRekomendasiSPenjualan(${i}); renderSPenjualanItems(); updatePreviewPenjualan();" style="min-width:170px;">${'<option value="">— pilih barang —</option>'+barangOpts.replace(`value="${it.barangId}"`, `value="${it.barangId}" selected`)}</select>`
-      : `<input type="text" value="${it.deskripsiJasa||''}" placeholder="Deskripsi jasa" oninput="sPenjualanItems[${i}].deskripsiJasa=this.value;" style="min-width:170px; padding:7px; border:1px solid var(--rule); border-radius:6px;">`;
-    const hargaRek = it.tipe==='barang' && it.barangId ? getHargaJualAktif(it.barangId, document.getElementById('sTanggal').value) : null;
+      : `<select onchange="sPenjualanItems[${i}].barangId=this.value; terapkanHargaRekomendasiSPenjualan(${i}); renderSPenjualanItems(); updatePreviewPenjualan();" style="min-width:170px;">${'<option value="">— pilih jasa —</option>'+(jasaOpts ? jasaOpts.replace(`value="${it.barangId}"`, `value="${it.barangId}" selected`) : '')}</select>${!jasaOpts ? '<div class="hint">Belum ada Data Barang dengan Jenis Barang "Jasa". Tambahkan dulu di menu 6. Data Barang.</div>' : ''}`;
+    const hargaRek = it.barangId ? getHargaJualAktif(it.barangId, document.getElementById('sTanggal').value) : null;
     const hargaTitle = (hargaRek!=null && !it.hargaManual) ? ` title="Rekomendasi otomatis dari Harga Jual Barang: ${formatRupiah(hargaRek)}. Bisa diedit manual."` : '';
     return `<tr>
-      <td><select onchange="sPenjualanItems[${i}].tipe=this.value; renderSPenjualanItems(); updatePreviewPenjualan();" style="padding:6px;">
+      <td><select onchange="sPenjualanItems[${i}].tipe=this.value; sPenjualanItems[${i}].barangId=''; renderSPenjualanItems(); updatePreviewPenjualan();" style="padding:6px;">
         <option value="barang" ${it.tipe==='barang'?'selected':''}>Barang</option>
         <option value="jasa" ${it.tipe==='jasa'?'selected':''}>Jasa</option></select></td>
       <td class="txt">${namaCell}</td>
@@ -5061,7 +5062,7 @@ function renderSPenjualanItems(){
 /* Mengisi harga baris ke-i pada Invoice Penjualan dengan rekomendasi Harga Jual Barang (sesuai tanggal invoice),
    kecuali harga baris tersebut sudah pernah diedit manual oleh pengguna. */
 function terapkanHargaRekomendasiSPenjualan(i){
-  const it = sPenjualanItems[i]; if(!it || it.tipe!=='barang' || !it.barangId) return;
+  const it = sPenjualanItems[i]; if(!it || !it.barangId) return;
   if(it.hargaManual) return;
   const rek = getHargaJualAktif(it.barangId, document.getElementById('sTanggal').value);
   if(rek!=null) it.harga = rek;
@@ -5170,8 +5171,8 @@ document.getElementById('formPenjualan').addEventListener('submit', e=>{
   if(pph && !pphAkunId){ alert('Pilih Jenis PPh (Akun Perkiraan) terlebih dahulu.'); return; }
   if(editingPenjualanId){ const existing = penjualanList.find(x=>x.id===editingPenjualanId); if(existing && cekTerkunciDanTolak(existing.tanggal)) return; }
   if(cekTerkunciDanTolak(tanggal)) return;
-  const validItems = sPenjualanItems.filter(it => it.qty>0 && it.harga>=0 && ((it.tipe==='barang' && it.barangId) || (it.tipe==='jasa' && it.deskripsiJasa.trim())));
-  if(!validItems.length){ alert('Tambahkan minimal satu baris barang/jasa yang lengkap.'); return; }
+  const validItems = sPenjualanItems.filter(it => it.qty>0 && it.harga>=0 && it.barangId);
+  if(!validItems.length){ alert('Tambahkan minimal satu baris barang/jasa yang lengkap (pilih dari Data Barang).'); return; }
   let removedInv = null, removedIdx = -1;
   if(editingPenjualanId){ removedIdx = penjualanList.findIndex(x=>x.id===editingPenjualanId); if(removedIdx>-1){ removedInv = penjualanList.splice(removedIdx,1)[0]; } }
   let virtualStock = {};
@@ -5183,7 +5184,7 @@ document.getElementById('formPenjualan').addEventListener('submit', e=>{
       if(removedInv) penjualanList.splice(removedIdx,0,removedInv); return; }
     virtualStock[it.barangId] -= it.qty;
   }
-  const items = validItems.map(it=>({id:uid(), tipe:it.tipe, barangId:it.tipe==='barang'?it.barangId:'', deskripsiJasa:it.tipe==='jasa'?it.deskripsiJasa.trim():'', qty:it.qty, harga:it.harga}));
+  const items = validItems.map(it=>({id:uid(), tipe:it.tipe, barangId:it.barangId, deskripsiJasa:'', qty:it.qty, harga:it.harga}));
   if(removedInv){
     if(!noInvoice) noInvoice = removedInv.noInvoice;
     if(!noFaktur) noFaktur = removedInv.noFaktur;
@@ -5229,7 +5230,7 @@ function coretaxInvoiceGoodServiceItems(inv){
   const rows = items.map(it=>{
     const rowSubtotal = (it.qty||0)*(it.harga||0);
     const rowDiskon = subtotalAll>0 ? Math.round(diskonTotal * (rowSubtotal/subtotalAll)) : 0;
-    const barang = it.tipe==='barang' ? getBarang(it.barangId) : null;
+    const barang = it.barangId ? getBarang(it.barangId) : null;
     const jenisBrg = barang ? (barang.jenis||'persediaan') : 'jasa';
     const opt = jenisBrg==='jasa' ? 'B' : 'A';
     const namaItem = barang ? barang.nama : (it.deskripsiJasa||'-');
@@ -6018,8 +6019,8 @@ function aggregateLapBrgJual(){
   const barangFilter = document.getElementById('lapBrgJualBarangFilter').value;
   const map = {};
   rows.forEach(p=>{ (p.items||[]).forEach(it=>{
-    if(barangFilter && !(it.tipe==='barang' && it.barangId===barangFilter)) return;
-    const key = it.tipe==='barang' ? ('b_'+it.barangId) : ('j_'+(it.deskripsiJasa||'').toLowerCase());
+    if(barangFilter && it.barangId!==barangFilter) return;
+    const key = it.barangId ? ('b_'+it.barangId) : ('j_'+(it.deskripsiJasa||'').toLowerCase());
     if(!map[key]) map[key] = {tipe:it.tipe, barangId:it.barangId, deskripsiJasa:it.deskripsiJasa, qty:0, nilai:0};
     map[key].qty += (it.qty||0); map[key].nilai += (it.qty||0)*(it.harga||0);
   }); });
@@ -6030,7 +6031,7 @@ function renderLapBrgJual(){
   const list = aggregateLapBrgJual();
   if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; summary.innerHTML=''; return; } empty.style.display='none';
   let totalQty=0, totalNilai=0;
-  tbody.innerHTML = list.map(r=>{ const b = r.tipe==='barang' ? getBarang(r.barangId) : null;
+  tbody.innerHTML = list.map(r=>{ const b = r.barangId ? getBarang(r.barangId) : null;
     const kode = b ? b.kode : '-'; const nama = b ? b.nama : (r.deskripsiJasa||'(jasa)');
     totalQty += r.qty; totalNilai += r.nilai;
     return `<tr><td class="txt">${kode}</td><td class="txt">${nama}</td><td>${r.qty}</td><td>${formatRupiah(r.nilai)}</td></tr>`; }).join('');
@@ -6045,14 +6046,14 @@ document.getElementById('btnExportLapBrgJualXlsx').addEventListener('click', ()=
   const list = aggregateLapBrgJual();
   if(!list.length){ alert('Belum ada data.'); return; }
   const header=['Kode','Nama Barang/Jasa','Jumlah Terjual','Total Nilai Penjualan'];
-  const data=list.map(r=>{ const b = r.tipe==='barang' ? getBarang(r.barangId) : null;
+  const data=list.map(r=>{ const b = r.barangId ? getBarang(r.barangId) : null;
     return [b?b.kode:'-', b?b.nama:(r.deskripsiJasa||'(jasa)'), r.qty, r.nilai]; });
   exportAoaXlsx(header, data, 'Barang per Penjualan', 'laporan-barang-per-penjualan.xlsx');
 });
 document.getElementById('btnCetakLapBrgJualPdf').addEventListener('click', ()=>{
   const list = aggregateLapBrgJual();
   if(!list.length){ alert('Belum ada data.'); return; }
-  const printRows = list.map(r=>{ const b = r.tipe==='barang' ? getBarang(r.barangId) : null;
+  const printRows = list.map(r=>{ const b = r.barangId ? getBarang(r.barangId) : null;
     return [b?b.kode:'-', b?b.nama:(r.deskripsiJasa||'(jasa)'), r.qty, formatRupiah(r.nilai)]; });
   cetakLaporanPdf('Laporan Barang per Penjualan', ['Kode','Nama Barang/Jasa','Jumlah Terjual','Total Nilai Penjualan'], printRows);
 });
