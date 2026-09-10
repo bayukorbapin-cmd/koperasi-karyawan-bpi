@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FA Tax and Accounting &amp; Persediaan — Lokal</title>
+<title>Koperasi BPI &amp; Persediaan</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -187,10 +187,9 @@ tfoot td.txt{text-align:left;}
 <div id="loginOverlay">
   <div class="login-card">
     <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#123A6B" stroke-width="1.8"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5"/><path d="M8 13h8M8 17h5"/></svg></div>
-    <h2>FA Tax and Accounting <span style="display:block; font-size:11px; color:#B45309; font-weight:700; letter-spacing:.04em;">VERSI TRIAL — maks. 80 transaksi</span></h2>
+    <h2>Koperasi BPI</h2>
     <p style="margin-bottom:4px;">hak cipta : Bayu Ferdianto</p>
     <p>Masukkan kode &amp; password untuk masuk</p>
-    <p style="font-size:11.5px; color:#5B7191;">Login demo (staf): kode <b>demo</b> / password <b>DEMO</b></p>
     <form id="formLogin">
       <div class="field"><label>Kode Login</label><input type="text" id="loginKode" autocomplete="off" required></div>
       <div class="field"><label>Password</label><input type="password" id="loginPassword" autocomplete="off" required></div>
@@ -205,15 +204,12 @@ tfoot td.txt{text-align:left;}
 <nav class="sidebar">
   <div class="brand">
     <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#123A6B" stroke-width="1.8"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5"/><path d="M8 13h8M8 17h5"/></svg></div>
-    <div><b>FA Tax and Accounting</b><span>Sinkron real-time (Supabase)</span><span style="display:block;">hak cipta : Bayu Ferdianto</span></div>
+    <div><b>Koperasi BPI</b><span>Sinkron real-time (Supabase)</span><span style="display:block;">hak cipta : Bayu Ferdianto</span></div>
   </div>
 
   <div style="padding:10px 18px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
     <span id="loggedInAs" style="font-size:11px; color:#B9CBE6;"></span>
     <button type="button" id="btnLogout" class="btn-ghost" style="font-size:11px; padding:4px 9px; border-color:#3E5A83; color:#DCE7F7;">Keluar</button>
-  </div>
-  <div style="padding:6px 18px 10px; border-bottom:1px solid rgba(255,255,255,.12); margin-bottom:6px;">
-    <span id="demoBadge" style="font-size:11px; font-weight:700; color:#FFD166;"></span>
   </div>
   <button class="navitem top active" data-target="dashboard">Dashboard</button>
 
@@ -313,8 +309,11 @@ tfoot td.txt{text-align:left;}
     <button class="navitem" data-target="koperasi-simpananpokok">Simpanan Pokok</button>
     <button class="navitem" data-target="koperasi-simpananwajib">Simpanan Wajib</button>
     <button class="navitem" data-target="koperasi-simpanansukarela">Simpanan Sukarela</button>
+    <button class="navitem" data-target="koperasi-simpanandanacadangan">Simpanan Dana Cadangan</button>
     <button class="navitem" data-target="koperasi-laporananggota">Laporan Anggota</button>
     <button class="navitem" data-target="koperasi-laporantagihan">Laporan Tagihan Anggota</button>
+    <button class="navitem" data-target="koperasi-laporanbulanan">Laporan Transaksi Bulanan Anggota</button>
+    <button class="navitem" data-target="koperasi-laporanbulananrekap">Laporan Transaksi Bulanan - Rekap</button>
   </div>
 
   <div class="navgroup" id="navgroup-12"><div class="navgroup-title">12. Aset Tetap</div>
@@ -499,7 +498,7 @@ tfoot td.txt{text-align:left;}
     <h1 class="page-title">Akun Perkiraan (Chart of Accounts)</h1>
     <p class="page-sub">Kelola daftar akun buku besar beserta saldo awal.</p>
     <div class="card">
-      <p class="hint">Untuk akun yang dipetakan sebagai Akun Penting (Piutang Usaha, Utang Usaha, Piutang Koperasi, Simpanan Pokok/Wajib/Sukarela — lihat menu Pengaturan &gt; Akun Penting), Saldo Awal di sini bersifat <b>tambahan manual</b>. Nilai yang benar-benar berlaku = Saldo Awal manual ini + jumlah saldo awal dari sub-akunnya (Data Pelanggan/Vendor/Anggota Koperasi). Biarkan 0 jika seluruh saldo awal sudah diisi lewat sub-akun.</p>
+      <p class="hint">Untuk akun yang dipetakan sebagai Akun Penting (Piutang Usaha, Utang Usaha, Piutang Koperasi, Simpanan Pokok/Wajib/Sukarela/Dana Cadangan — lihat menu Pengaturan &gt; Akun Penting), Saldo Awal di sini bersifat <b>tambahan manual</b>. Nilai yang benar-benar berlaku = Saldo Awal manual ini + jumlah saldo awal dari sub-akunnya (Data Pelanggan/Vendor/Anggota Koperasi). Biarkan 0 jika seluruh saldo awal sudah diisi lewat sub-akun.</p>
       <form id="formAkun">
         <div class="form-row">
           <div class="field"><label>Kode Akun</label><input type="text" id="akKode" required style="min-width:90px;"></div>
@@ -610,7 +609,11 @@ tfoot td.txt{text-align:left;}
           <div class="preview-box" id="kbpLimitInfo" style="display:none; margin-bottom:0;"></div>
           <div class="field" id="kbpAkunPiutangKopField" style="display:none;"><label>Sub-akun Piutang</label><select id="kbpAkunPiutangKop" style="min-width:200px;"></select></div>
           <div class="field" id="kbpJangkaField" style="display:none;"><label>Jangka Waktu (bulan)</label><input type="number" id="kbpJangkaWaktu" min="1" value="12" style="min-width:100px;"></div>
-          <div class="field"><label>Jumlah (Rp)</label><input type="number" id="kbpJumlah" min="0" required style="min-width:130px;"></div>
+          <div class="field"><label id="kbpJumlahLabel">Jumlah (Rp)</label><input type="number" id="kbpJumlah" min="0" required style="min-width:130px;"></div>
+          <div class="field" id="kbpDppField" style="display:none;"><label>DPP (Rp)</label><input type="number" id="kbpDpp" min="0" value="0" style="min-width:120px;" placeholder="= Jumlah jika kosong"></div>
+          <div class="field" id="kbpPpnField" style="display:none;"><label>PPN (Rp)</label><input type="number" id="kbpPpn" min="0" value="0" style="min-width:100px;"></div>
+          <div class="field" id="kbpUangMukaField" style="display:none;"><label>Uang Muka (Rp)</label><input type="number" id="kbpUangMuka" min="0" value="0" style="min-width:110px;"></div>
+          <div class="field" id="kbpBiayaAdminField" style="display:none;"><label>Biaya Adm Pinjaman (Rp)</label><input type="number" id="kbpBiayaAdmin" min="0" value="0" style="min-width:130px;"></div>
           <div class="field"><label>Projek</label><select id="kbpProjek" style="min-width:180px;"></select></div>
           <div class="field"><label>Keterangan</label><input type="text" id="kbpKeterangan" style="min-width:180px;"></div>
           <button type="submit" class="btn-primary">+ Simpan Pembayaran</button>
@@ -1576,6 +1579,7 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Simpanan Pokok (Rp)</label><input type="number" id="kaSaldoSimpananPokok" min="0" value="0" style="min-width:130px;"></div>
           <div class="field"><label>Simpanan Wajib (Rp)</label><input type="number" id="kaSaldoSimpananWajib" min="0" value="0" style="min-width:130px;"></div>
           <div class="field"><label>Simpanan Sukarela (Rp)</label><input type="number" id="kaSaldoSimpananSukarela" min="0" value="0" style="min-width:130px;"></div>
+          <div class="field"><label>Simpanan Dana Cadangan (Rp)</label><input type="number" id="kaSaldoSimpananDanaCadangan" min="0" value="0" style="min-width:130px;"></div>
           <div class="field"><label>Pinjaman Tunai (Rp)</label><input type="number" id="kaSaldoPinjamanTunai" min="0" value="0" style="min-width:130px;"></div>
           <div class="field"><label>Piutang Penjualan (Rp)</label><input type="number" id="kaSaldoPiutangPenjualan" min="0" value="0" style="min-width:130px;"></div>
         </div>
@@ -1718,6 +1722,15 @@ tfoot td.txt{text-align:left;}
       </div>
     </div>
     <div class="card">
+      <h3 style="margin-top:0;">Posting Simpanan Wajib Bulanan (Semua Anggota Aktif)</h3>
+      <p class="hint" style="margin-top:-4px;">Membuat catatan Simpanan Wajib otomatis untuk setiap anggota/karyawan aktif yang sudah diisi nominal "Potongan Simpanan Wajib" di menu Data Anggota/Karyawan. Anggota yang sudah diposting untuk bulan yang sama tidak akan diduplikasi meski tombol ditekan berulang.</p>
+      <div class="form-row">
+        <div class="field"><label>Tanggal Posting</label><input type="date" id="spWajibPostingTanggal"></div>
+        <div class="field"><label>Akun Kas/Bank Penerima</label><select id="spWajibPostingAkunKasBank" style="min-width:200px;"></select></div>
+        <button type="button" class="btn-primary" id="btnPostingSpWajib">Posting Simpanan Wajib</button>
+      </div>
+    </div>
+    <div class="card">
       <form id="formKopSpWajib" data-tipe="wajib">
         <div class="form-row">
           <div class="field"><label>Anggota/Karyawan</label><select id="spWajibAnggota" required style="min-width:220px;"></select></div>
@@ -1749,6 +1762,15 @@ tfoot td.txt{text-align:left;}
       </div>
     </div>
     <div class="card">
+      <h3 style="margin-top:0;">Posting Simpanan Sukarela Bulanan (Semua Anggota Aktif)</h3>
+      <p class="hint" style="margin-top:-4px;">Membuat catatan Simpanan Sukarela otomatis untuk setiap anggota/karyawan aktif yang sudah diisi nominal "Potongan Simpanan Sukarela" di menu Data Anggota/Karyawan. Anggota yang sudah diposting untuk bulan yang sama tidak akan diduplikasi meski tombol ditekan berulang.</p>
+      <div class="form-row">
+        <div class="field"><label>Tanggal Posting</label><input type="date" id="spSukarelaPostingTanggal"></div>
+        <div class="field"><label>Akun Kas/Bank Penerima</label><select id="spSukarelaPostingAkunKasBank" style="min-width:200px;"></select></div>
+        <button type="button" class="btn-primary" id="btnPostingSpSukarela">Posting Simpanan Sukarela</button>
+      </div>
+    </div>
+    <div class="card">
       <form id="formKopSpSukarela" data-tipe="sukarela">
         <div class="form-row">
           <div class="field"><label>Anggota/Karyawan</label><select id="spSukarelaAnggota" required style="min-width:220px;"></select></div>
@@ -1768,6 +1790,38 @@ tfoot td.txt{text-align:left;}
     </div>
   </section>
 
+  <!-- ===== 8h2. KOPERASI - SIMPANAN DANA CADANGAN ===== -->
+  <section class="panel" id="panel-koperasi-simpanandanacadangan">
+    <div class="section-title"><h1 class="page-title" style="margin-bottom:0;">Simpanan Dana Cadangan</h1>
+      <div class="export-actions">
+        <button type="button" class="btn-ghost" id="btnUnduhTemplateSpDanaCadangan">Unduh Template Excel</button>
+        <button type="button" class="btn-ghost" id="btnImporSpDanaCadanganTrigger">Impor Excel</button>
+        <input type="file" id="inputImporSpDanaCadangan" accept=".xlsx,.xls" style="display:none;">
+        <button type="button" class="btn-accent" id="btnExportSpDanaCadanganXlsx">Export Excel</button>
+        <button type="button" class="btn-ghost" id="btnCetakSpDanaCadanganPdf">Cetak PDF</button>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:0;">Simpanan Dana Cadangan diisi manual per anggota/karyawan (tidak ada posting bulanan otomatis seperti Simpanan Wajib/Sukarela).</p>
+    <div class="card">
+      <form id="formKopSpDanaCadangan" data-tipe="danaCadangan">
+        <div class="form-row">
+          <div class="field"><label>Anggota/Karyawan</label><select id="spDanaCadanganAnggota" required style="min-width:220px;"></select></div>
+          <div class="field"><label>Tanggal</label><input type="date" id="spDanaCadanganTanggal" required></div>
+          <div class="field" style="position:relative;"><label>Jumlah (Rp)</label><input type="number" id="spDanaCadanganJumlah" min="0" required style="min-width:130px;">
+            <div class="hint" id="spDanaCadanganRekomendasi" style="position:absolute; top:100%; left:0; width:100%; margin-top:2px;"></div>
+          </div>
+          <div class="field"><label>Akun Kas/Bank Penerima</label><select id="spDanaCadanganAkunKasBank" required style="min-width:200px;"></select></div>
+          <div class="field"><label>Keterangan</label><input type="text" id="spDanaCadanganKeterangan" style="min-width:160px;"></div>
+          <button type="submit" class="btn-primary">+ Simpan Simpanan Dana Cadangan</button>
+        </div>
+      </form>
+      <div class="summary-cards" id="summarySpDanaCadangan"></div>
+      <div class="table-scroll"><table><thead><tr><th>No. Bukti</th><th>Tanggal</th><th>NIP</th><th>Nama</th><th style="width:150px;">Jumlah</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+      <tbody id="tbodySpDanaCadangan"></tbody></table></div>
+      <div class="empty" id="emptySpDanaCadangan" style="display:none;">Belum ada simpanan dana cadangan tercatat.</div>
+    </div>
+  </section>
+
   <!-- ===== 8i. KOPERASI - LAPORAN ANGGOTA ===== -->
   <section class="panel" id="panel-koperasi-laporananggota">
     <div class="section-title"><h1 class="page-title" style="margin-bottom:0;">Laporan Anggota</h1>
@@ -1776,7 +1830,7 @@ tfoot td.txt{text-align:left;}
       <div class="export-actions"><button type="button" class="btn-accent" id="btnExportKopAnggotaXlsx">Export Excel</button><button type="button" class="btn-ghost" id="btnCetakKopAnggotaPdf">Cetak PDF</button></div>
     </div>
     <div class="card"><div class="table-scroll"><table>
-      <thead><tr><th>NIP</th><th class="txt">Nama</th><th class="txt">Jabatan</th><th>Simpanan Pokok</th><th>Simpanan Wajib</th><th>Simpanan Sukarela</th>
+      <thead><tr><th>NIP</th><th class="txt">Nama</th><th class="txt">Jabatan</th><th>Simpanan Pokok</th><th>Simpanan Wajib</th><th>Simpanan Sukarela</th><th>Simpanan Dana Cadangan</th>
         <th>Pinjaman Tunai</th><th>Piutang Penjualan</th><th>Sisa Pinjaman Tunai</th><th>Sisa Piutang Penjualan</th></tr></thead>
       <tbody id="tbodyLaporanAnggota"></tbody>
     </table></div><div class="empty" id="emptyLaporanAnggota" style="display:none;">Belum ada data anggota.</div></div>
@@ -1793,10 +1847,49 @@ tfoot td.txt{text-align:left;}
     </div>
     <p class="page-sub">Menampilkan jumlah simpanan yang disetor dan potongan/pembayaran cicilan pinjaman koperasi per anggota, khusus pada rentang tanggal yang dipilih.</p>
     <div class="card"><div class="table-scroll"><table>
-      <thead><tr><th class="txt">NIP</th><th class="txt">Nama</th><th class="txt">Jabatan</th><th>Simpanan Pokok</th><th>Simpanan Wajib</th><th>Simpanan Sukarela</th><th>Potongan Pinjaman Tunai</th><th>Piutang Penjualan</th><th>Total Tagihan</th></tr></thead>
+      <thead><tr><th class="txt">NIP</th><th class="txt">Nama</th><th class="txt">Jabatan</th><th>Simpanan Pokok</th><th>Simpanan Wajib</th><th>Simpanan Sukarela</th><th>Simpanan Dana Cadangan</th><th>Potongan Pinjaman Tunai</th><th>Piutang Penjualan</th><th>Total Tagihan</th></tr></thead>
       <tbody id="tbodyLaporanTagihan"></tbody>
       <tfoot id="tfootLaporanTagihan"></tfoot>
     </table></div><div class="empty" id="emptyLaporanTagihan" style="display:none;">Belum ada data anggota.</div></div>
+  </section>
+
+  <!-- ===== 8k. KOPERASI - LAPORAN TRANSAKSI BULANAN ANGGOTA ===== -->
+  <section class="panel" id="panel-koperasi-laporanbulanan">
+    <div class="section-title"><h1 class="page-title" style="margin-bottom:0;">Laporan Transaksi Bulan Ini — by Anggota</h1>
+      <div class="export-actions"><button type="button" class="btn-accent" id="btnExportLapBulananXlsx">Export Excel</button><button type="button" class="btn-ghost" id="btnCetakLapBulananPdf">Cetak PDF</button></div>
+    </div>
+    <p class="page-sub">Rincian semua pinjaman/piutang koperasi anggota (Pinjaman Tunai, Piutang Penjualan/Pembelian, Piutang Bengkel, dsb.) yang masih berjalan pada bulan terpilih, dikelompokkan per sub-akun piutang.</p>
+    <div class="card">
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="field"><label>Bulan</label><select id="ltbBulan">
+          <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option>
+          <option value="5">Mei</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">Agustus</option>
+          <option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+        </select></div>
+        <div class="field"><label>Tahun</label><input type="number" id="ltbTahun" min="2000" max="2100" style="min-width:90px;"></div>
+        <div class="field"><label>NIP / Nama</label><select id="ltbAnggota" style="min-width:260px;"></select></div>
+      </div>
+      <div id="ltbHasil"></div>
+    </div>
+  </section>
+
+  <!-- ===== 8l. KOPERASI - LAPORAN TRANSAKSI BULANAN REKAP (SEMUA ANGGOTA) ===== -->
+  <section class="panel" id="panel-koperasi-laporanbulananrekap">
+    <div class="section-title"><h1 class="page-title" style="margin-bottom:0;">Laporan Transaksi Bulan Ini — Rekap</h1>
+      <div class="export-actions"><button type="button" class="btn-accent" id="btnExportLapBulananRekapXlsx">Export Excel</button><button type="button" class="btn-ghost" id="btnCetakLapBulananRekapPdf">Cetak PDF</button></div>
+    </div>
+    <p class="page-sub">Rekap total seluruh anggota/karyawan per sub-akun piutang (Pinjaman Tunai, Piutang Bengkel, Piutang Projek Konstruksi, Piutang Sewa Mobil, Piutang Penjualan Motor, dsb.) untuk bulan terpilih.</p>
+    <div class="card">
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="field"><label>Bulan</label><select id="ltbrBulan">
+          <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option>
+          <option value="5">Mei</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">Agustus</option>
+          <option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+        </select></div>
+        <div class="field"><label>Tahun</label><input type="number" id="ltbrTahun" min="2000" max="2100" style="min-width:90px;"></div>
+      </div>
+      <div id="ltbrHasil"></div>
+    </div>
   </section>
 
   <!-- ===== 10a. PROJEK - DATA PROJEK ===== -->
@@ -2577,8 +2670,8 @@ tfoot td.txt{text-align:left;}
    (Supabase Dashboard > Project Settings > API). Selama masih bertuliskan
    'GANTI-...' aplikasi akan tetap jalan normal seperti sebelumnya (localStorage saja,
    tanpa sinkron ke perangkat lain). Lihat README.md untuk langkah setup lengkap. */
-const SUPABASE_URL = 'https://cegdhyywumtabamzufch.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_XmtsS4sb0XTvntGghVuqDg_NVeuX8EV';
+const SUPABASE_URL = 'https://zeomgmkdnbvuuldgaseg.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Ay8_l-7Ig8Nz7zmFiTNK0w_NEkqIKAW';
 
 let sbClient = null;
 try{
@@ -2793,24 +2886,13 @@ let pphKoreksiTransaksiData = ld(LS.pphKoreksiTransaksi, {});
 let cfProjeksiList = ld(LS.cfProjeksi, []);
 let masaKerjaPajakList = ld(LS.masaKerjaPajak, []);
 let seq = parseInt(localStorage.getItem(LS.seq) || '0', 10);
-/* ===== VERSI TRIAL: dibatasi maksimal 80 transaksi ===== */
-const DEMO_MODE = true;
-const DEMO_MAX_TRANSAKSI = 80;
-function updateDemoBadge(){
-  const el = document.getElementById('demoBadge');
-  if(!el) return;
-  if(!DEMO_MODE){ el.textContent=''; return; }
-  const sisa = Math.max(0, DEMO_MAX_TRANSAKSI - seq);
-  el.style.color = sisa<=10 ? '#FF6B6B' : '#FFD166';
-  el.textContent = 'VERSI TRIAL — Transaksi: '+Math.min(seq,DEMO_MAX_TRANSAKSI)+' / '+DEMO_MAX_TRANSAKSI+(sisa===0?' (batas tercapai)':'');
-}
 let editingBarangId=null, editingSatuanBarangId=null, editingVendorId=null, editingCustomerId=null, editingAkunId=null, editingKopAnggotaId=null, editingPenjualanId=null, editingPembelianId=null, editingProjekId=null, editingHargaJualId=null, editingJabatanId=null;
 
 const defaultSettings = {
   company:{nama:'', alamat:'', npwp:'', kodeCabang:'000000'},
   akunPenting:{ persediaan:null, penjualan:null, returPenjualan:null, diskonPenjualan:null, hpp:null, returPembelian:null, beban:null,
-    piutang:null, utang:null, ppnMasukan:null, ppnKeluaran:null, uangMukaPenjualan:null, uangMukaPembelian:null, simpananPokok:null, simpananWajib:null, simpananSukarela:null, labaDitahan:null,
-    bebanPajakBadan:null, utangPajakBadan:null },
+    piutang:null, utang:null, ppnMasukan:null, ppnKeluaran:null, uangMukaPenjualan:null, uangMukaPembelian:null, simpananPokok:null, simpananWajib:null, simpananSukarela:null, simpananDanaCadangan:null, labaDitahan:null,
+    bebanPajakBadan:null, utangPajakBadan:null, pendapatanAdmPinjaman:null },
   desain:{ logoDataUrl:'', footerNote:'', infoPembayaranPenjualan:'', showNpwp:true, signatories:{ pesananPenjualan:{nama:'',jabatan:''}, penjualan:{nama:'',jabatan:''}, pesananPembelian:{nama:'',jabatan:''}, pembelian:{nama:'',jabatan:''}, neraca:{nama:'',jabatan:''}, labarugi:{nama:'',jabatan:''} } },
   penomoran:{
     invoicePenjualan:{prefix:'INV-JU-',digits:4,next:1}, fakturPenjualan:{prefix:'FP-',digits:4,next:1},
@@ -2824,10 +2906,7 @@ const defaultSettings = {
     ppnRekon:{prefix:'RPN-',digits:4,next:1}, pphBadan:{prefix:'PPB-',digits:4,next:1}, stockOpname:{prefix:'SOP-',digits:4,next:1},
     penerimaanBarang:{prefix:'PB-',digits:4,next:1}, suratJalan:{prefix:'SJ-',digits:4,next:1}
   },
-  akses:{ accounts:[
-    { id:'admin-default', nama:'Admin', kode:'123', password:'123', allowedGroups:['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'] },
-    { id:'demo-default', nama:'User Demo', kode:'demo', password:'DEMO', allowedGroups:['2','3','4','5','6','7','8','9','10','11','12','13','14','15'] }
-  ] }
+  akses:{ accounts:[ { id:'admin-default', nama:'Admin', kode:'123', password:'123', allowedGroups:['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'] } ] }
 };
 let settings = ld(LS.settings, null);
 if(!settings){
@@ -2910,14 +2989,7 @@ const save = {
   masaKerjaPajak:()=>localStorage.setItem(LS.masaKerjaPajak, JSON.stringify(masaKerjaPajakList)),
   settings:()=>localStorage.setItem(LS.settings, JSON.stringify(settings))
 };
-function nextSeq(){
-  if(DEMO_MODE && seq >= DEMO_MAX_TRANSAKSI){
-    updateDemoBadge();
-    alert('Versi TRIAL ini dibatasi maksimal '+DEMO_MAX_TRANSAKSI+' transaksi.\n\nData yang sudah ada tetap bisa dilihat/dicetak, tapi transaksi baru tidak bisa ditambahkan lagi di versi trial ini.\nHubungi kami untuk mendapatkan versi lengkap tanpa batas.');
-    throw new Error('DEMO_LIMIT_REACHED');
-  }
-  seq += 1; localStorage.setItem(LS.seq, String(seq)); updateDemoBadge(); return seq;
-}
+function nextSeq(){ seq += 1; localStorage.setItem(LS.seq, String(seq)); return seq; }
 function uid(){ return 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function formatRupiah(n){ return 'Rp ' + Math.round(n||0).toLocaleString('id-ID'); }
 function formatRibuan(str){ const digits = String(str==null?'':str).replace(/[^\d]/g,''); if(!digits) return ''; return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
@@ -2935,9 +3007,10 @@ function attachRibuanInput(id){
 }
 function initRibuanInputs(){
   ['bJumlah','kbpJumlah','kbnJumlah','kbxJumlah','arJumlah','apJumlah','akSaldoAwal',
-   'kaMaksimalPinjaman','kaSaldoSimpananPokok','kaSaldoSimpananWajib','kaSaldoSimpananSukarela','kaSaldoPinjamanTunai','kaSaldoPiutangPenjualan',
+   'kaMaksimalPinjaman','kaSaldoSimpananPokok','kaSaldoSimpananWajib','kaSaldoSimpananSukarela','kaSaldoSimpananDanaCadangan','kaSaldoPinjamanTunai','kaSaldoPiutangPenjualan',
    'kaPotSpPokok','kaPotSpWajib','kaPotSpSukarela',
-   'spPokokJumlah','spWajibJumlah','spSukarelaJumlah','vSaldoJumlah','cSaldoJumlah','mSaldoAwal',
+   'spPokokJumlah','spWajibJumlah','spSukarelaJumlah','spDanaCadanganJumlah','vSaldoJumlah','cSaldoJumlah','mSaldoAwal',
+   'kbpDpp','kbpPpn','kbpUangMuka','kbpBiayaAdmin',
    'atJumlah','atNilaiSisa','hjHarga'
   ].forEach(attachRibuanInput);
 }
@@ -2979,9 +3052,16 @@ function seedAkunIfEmpty(){
     {kode:'10003', nama:'Piutang Usaha', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'10101', nama:'Persediaan Barang Dagang', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'10102', nama:'Barang Dalam Proses (WIP)', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
+    {kode:'10103', nama:'Persediaan Bengkel', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
+    {kode:'10104', nama:'Persediaan Projek Konstruksi', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
+    {kode:'10105', nama:'Persediaan Motor', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'10201', nama:'Piutang Tagihan Koperasi', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
     {kode:'10202', nama:'Piutang Koperasi Tunai', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
     {kode:'10203', nama:'Piutang Koperasi Penjualan', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
+    {kode:'10204', nama:'Piutang Bengkel', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
+    {kode:'10205', nama:'Piutang Projek Konstruksi', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
+    {kode:'10206', nama:'Piutang Sewa Mobil', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
+    {kode:'10207', nama:'Piutang Penjualan Motor', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, isPiutangKop:true, saldoAwal:0},
     {kode:'10301', nama:'PPn Masukan', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'10302', nama:'Piutang PPh 21', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'10303', nama:'Piutang PPh Unifikasi', tipe:'Aset Lancar', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
@@ -3000,13 +3080,22 @@ function seedAkunIfEmpty(){
     {kode:'31002', nama:'Simpanan Pokok Anggota', tipe:'Modal', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'31003', nama:'Simpanan Wajib Anggota', tipe:'Modal', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'31004', nama:'Simpanan Sukarela Anggota', tipe:'Modal', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
+    {kode:'31005', nama:'Simpanan Dana Cadangan Anggota', tipe:'Modal', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'39998', nama:'Laba Ditahan', tipe:'Modal', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'39999', nama:'Laba Periode Berjalan', tipe:'Modal', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'41001', nama:'Penjualan', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'41002', nama:'Retur Penjualan', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'41003', nama:'Diskon Penjualan', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
+    {kode:'41004', nama:'Pendapatan Adm Pinjaman Koperasi', tipe:'Pendapatan Usaha Lainnya', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
+    {kode:'41005', nama:'Pendapatan Bengkel', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
+    {kode:'41006', nama:'Penjualan Projek Konstruksi', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
+    {kode:'41007', nama:'Pendapatan Sewa Mobil', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
+    {kode:'41008', nama:'Penjualan Motor', tipe:'Pendapatan Usaha', saldoNormal:'Kredit', isKasBank:false, saldoAwal:0},
     {kode:'51001', nama:'Harga Pokok Penjualan', tipe:'Beban Produksi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'51002', nama:'Retur Pembelian', tipe:'Beban Produksi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
+    {kode:'51003', nama:'HPP Bengkel', tipe:'Beban Produksi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
+    {kode:'51004', nama:'HPP Projek Konstruksi', tipe:'Beban Produksi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
+    {kode:'51005', nama:'HPP Penjualan Motor', tipe:'Beban Produksi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'61001', nama:'Beban Ikan', tipe:'Beban Pemasaran', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'71001', nama:'Beban Gaji dan Upah', tipe:'Beban Administrasi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
     {kode:'72001', nama:'Beban Penyusutan Peralatan', tipe:'Beban Administrasi', saldoNormal:'Debit', isKasBank:false, saldoAwal:0},
@@ -3025,10 +3114,12 @@ function seedAkunIfEmpty(){
     utang: akunList.find(a=>a.kode==='21001').id, ppnMasukan: akunList.find(a=>a.kode==='10301').id,
     ppnKeluaran: akunList.find(a=>a.kode==='21201').id, piutangKoperasi: akunList.find(a=>a.kode==='10201').id,
     simpananPokok: akunList.find(a=>a.kode==='31002').id, simpananWajib: akunList.find(a=>a.kode==='31003').id,
-    simpananSukarela: akunList.find(a=>a.kode==='31004').id, labaDitahan: akunList.find(a=>a.kode==='39998').id,
+    simpananSukarela: akunList.find(a=>a.kode==='31004').id, simpananDanaCadangan: akunList.find(a=>a.kode==='31005').id,
+    labaDitahan: akunList.find(a=>a.kode==='39998').id,
     labaBerjalan: akunList.find(a=>a.kode==='39999').id,
     bebanPajakBadan: akunList.find(a=>a.kode==='99999').id, utangPajakBadan: akunList.find(a=>a.kode==='21204').id,
-    wip: akunList.find(a=>a.kode==='10102').id
+    wip: akunList.find(a=>a.kode==='10102').id,
+    pendapatanAdmPinjaman: akunList.find(a=>a.kode==='41004').id
   };
   save.settings();
 }
@@ -3037,7 +3128,23 @@ function migrateTambahanAkun(){
   // idempotent: adds newly-introduced accounts/roles for installs that already had data before this update
   const tambahan = [
     {kode:'21204', nama:'Utang PPh Badan', tipe:'Liabilitas Jangka Pendek', saldoNormal:'Kredit'},
-    {kode:'10102', nama:'Barang Dalam Proses (WIP)', tipe:'Aset Lancar', saldoNormal:'Debit'}
+    {kode:'10102', nama:'Barang Dalam Proses (WIP)', tipe:'Aset Lancar', saldoNormal:'Debit'},
+    {kode:'41004', nama:'Pendapatan Adm Pinjaman Koperasi', tipe:'Pendapatan Usaha Lainnya', saldoNormal:'Kredit'},
+    {kode:'31005', nama:'Simpanan Dana Cadangan Anggota', tipe:'Modal', saldoNormal:'Kredit'},
+    {kode:'10103', nama:'Persediaan Bengkel', tipe:'Aset Lancar', saldoNormal:'Debit'},
+    {kode:'10204', nama:'Piutang Bengkel', tipe:'Aset Lancar', saldoNormal:'Debit', isPiutangKop:true},
+    {kode:'41005', nama:'Pendapatan Bengkel', tipe:'Pendapatan Usaha', saldoNormal:'Kredit'},
+    {kode:'51003', nama:'HPP Bengkel', tipe:'Beban Produksi', saldoNormal:'Debit'},
+    {kode:'10104', nama:'Persediaan Projek Konstruksi', tipe:'Aset Lancar', saldoNormal:'Debit'},
+    {kode:'10205', nama:'Piutang Projek Konstruksi', tipe:'Aset Lancar', saldoNormal:'Debit', isPiutangKop:true},
+    {kode:'41006', nama:'Penjualan Projek Konstruksi', tipe:'Pendapatan Usaha', saldoNormal:'Kredit'},
+    {kode:'51004', nama:'HPP Projek Konstruksi', tipe:'Beban Produksi', saldoNormal:'Debit'},
+    {kode:'10206', nama:'Piutang Sewa Mobil', tipe:'Aset Lancar', saldoNormal:'Debit', isPiutangKop:true},
+    {kode:'41007', nama:'Pendapatan Sewa Mobil', tipe:'Pendapatan Usaha', saldoNormal:'Kredit'},
+    {kode:'10105', nama:'Persediaan Motor', tipe:'Aset Lancar', saldoNormal:'Debit'},
+    {kode:'10207', nama:'Piutang Penjualan Motor', tipe:'Aset Lancar', saldoNormal:'Debit', isPiutangKop:true},
+    {kode:'41008', nama:'Penjualan Motor', tipe:'Pendapatan Usaha', saldoNormal:'Kredit'},
+    {kode:'51005', nama:'HPP Penjualan Motor', tipe:'Beban Produksi', saldoNormal:'Debit'}
   ];
   let changed = false;
   tambahan.forEach(t=>{ if(!akunList.some(a=>a.kode===t.kode)){ akunList.push({id:uid(), isKasBank:false, saldoAwal:0, ...t}); changed=true; } });
@@ -3052,6 +3159,8 @@ function migrateTambahanAkun(){
   if(!settings.akunPenting.bebanPajakBadan){ const a=akunList.find(x=>x.kode==='99999'); if(a) settings.akunPenting.bebanPajakBadan=a.id; changed=true; }
   if(!settings.akunPenting.utangPajakBadan){ const a=akunList.find(x=>x.kode==='21204'); if(a) settings.akunPenting.utangPajakBadan=a.id; changed=true; }
   if(!settings.akunPenting.wip){ const a=akunList.find(x=>x.kode==='10102'); if(a) settings.akunPenting.wip=a.id; changed=true; }
+  if(!settings.akunPenting.pendapatanAdmPinjaman){ const a=akunList.find(x=>x.kode==='41004'); if(a) settings.akunPenting.pendapatanAdmPinjaman=a.id; changed=true; }
+  if(!settings.akunPenting.simpananDanaCadangan){ const a=akunList.find(x=>x.kode==='31005'); if(a) settings.akunPenting.simpananDanaCadangan=a.id; changed=true; }
   if(changed) save.settings();
 }
 migrateTambahanAkun();
@@ -3441,8 +3550,11 @@ function onNavigate(target){
   if(target==='koperasi-simpananpokok') renderKopSimpanan('pokok');
   if(target==='koperasi-simpananwajib') renderKopSimpanan('wajib');
   if(target==='koperasi-simpanansukarela') renderKopSimpanan('sukarela');
+  if(target==='koperasi-simpanandanacadangan') renderKopSimpanan('danaCadangan');
   if(target==='koperasi-laporananggota') renderLaporanAnggota();
   if(target==='koperasi-laporantagihan') renderLaporanTagihan();
+  if(target==='koperasi-laporanbulanan') renderLaporanBulanan();
+  if(target==='koperasi-laporanbulananrekap') renderLaporanBulananRekap();
 }
 
 /* ============================================================= DASHBOARD ============================================================= */
@@ -3632,7 +3744,6 @@ function applyAksesRestriction(){
   }
   const badge = document.getElementById('loggedInAs');
   if(badge) badge.textContent = acc ? ('Masuk sebagai: '+(acc.nama||acc.kode)) : '';
-  updateDemoBadge();
 }
 
 /* ============================================================= 1b. AKUN PENTING ============================================================= */
@@ -3642,15 +3753,16 @@ const AKUN_PENTING_LABELS = {
   piutang:'Piutang Usaha', utang:'Utang Usaha', ppnMasukan:'PPN Masukan', ppnKeluaran:'PPN Keluaran',
   uangMukaPenjualan:'Uang Muka Penjualan (Diterima dari Pelanggan)', uangMukaPembelian:'Uang Muka Pembelian (Dibayar ke Vendor)',
   piutangKoperasi:'Piutang Koperasi (Pinjaman Anggota)', wip:'Barang Dalam Proses (WIP / Produksi)',
-  simpananPokok:'Koperasi — Simpanan Pokok', simpananWajib:'Koperasi — Simpanan Wajib', simpananSukarela:'Koperasi — Simpanan Sukarela',
+  simpananPokok:'Koperasi — Simpanan Pokok', simpananWajib:'Koperasi — Simpanan Wajib', simpananSukarela:'Koperasi — Simpanan Sukarela', simpananDanaCadangan:'Koperasi — Simpanan Dana Cadangan',
   labaDitahan:'Laba Ditahan (hasil Tutup Buku Tahunan)',
-  bebanPajakBadan:'Beban Pajak Badan Usaha (untuk Posting Rekonsiliasi PPh Badan)', utangPajakBadan:'Utang Pajak Badan Usaha / PPh 29 (untuk Posting Rekonsiliasi PPh Badan)'
+  bebanPajakBadan:'Beban Pajak Badan Usaha (untuk Posting Rekonsiliasi PPh Badan)', utangPajakBadan:'Utang Pajak Badan Usaha / PPh 29 (untuk Posting Rekonsiliasi PPh Badan)',
+  pendapatanAdmPinjaman:'Koperasi — Pendapatan Adm Pinjaman'
 };
 function renderAkunPenting(){
   const keys = Object.keys(AKUN_PENTING_LABELS);
   document.getElementById('akunPentingCard').innerHTML =
     `<p class="hint" style="margin-top:0;">Setelah pemetaan di bawah ini disimpan, Saldo Awal akun-akun tersebut di menu <b>Buku Besar Akun Perkiraan</b> akan otomatis terisi dari saldo awal sub-akunnya:
-    Piutang Usaha ← saldo awal Data Pelanggan, Utang Usaha ← saldo awal Data Vendor, Piutang Koperasi ← saldo awal Pinjaman Tunai/Piutang Penjualan Data Anggota, dan Simpanan Pokok/Wajib/Sukarela ← saldo awal masing-masing di Data Anggota/Karyawan. Saldo Awal manual di Buku Besar tetap bisa diisi sebagai tambahan.
+    Piutang Usaha ← saldo awal Data Pelanggan, Utang Usaha ← saldo awal Data Vendor, Piutang Koperasi ← saldo awal Pinjaman Tunai/Piutang Penjualan Data Anggota, dan Simpanan Pokok/Wajib/Sukarela/Dana Cadangan ← saldo awal masing-masing di Data Anggota/Karyawan. Saldo Awal manual di Buku Besar tetap bisa diisi sebagai tambahan.
     Khusus <b>Laba Ditahan</b>: akun ini diisi otomatis oleh menu <b>Tutup Buku Tahunan</b> (15. Tutup Buku) — jangan diposting manual lewat Jurnal Umum.</p>` +
     keys.map(k=>`
     <div class="form-row"><div class="field" style="min-width:220px;"><label>${AKUN_PENTING_LABELS[k]}</label>
@@ -3787,7 +3899,7 @@ function populateAkunSelects(){
   const kasBankOpts = akunListSorted.filter(a=>a.isKasBank).map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   const bebanOpts = akunListSorted.filter(a=>baseTipe(a.tipe)==='Beban').map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   ['kbpAkunLawan','bAkunBeban','lapBBAkun','sPphAkun','pPphAkun','cfAkunLawan'].forEach(id=>{ const sel=document.getElementById(id); if(!sel) return; const prev=sel.value; sel.innerHTML = id==='bAkunBeban'? (bebanOpts||genOpts) : genOpts; if([...sel.options].some(o=>o.value===prev)) sel.value=prev; });
-  ['kbpAkunKasBank','kbnAkunKasBank','kbxAsal','kbxTujuan','lapKBAkun','arAkunKasBank','apAkunKasBank','bAkunBayar','dmAkunKasBank','spPokokAkunKasBank','spWajibAkunKasBank','spSukarelaAkunKasBank'].forEach(id=>{
+  ['kbpAkunKasBank','kbnAkunKasBank','kbxAsal','kbxTujuan','lapKBAkun','arAkunKasBank','apAkunKasBank','bAkunBayar','dmAkunKasBank','spPokokAkunKasBank','spWajibAkunKasBank','spSukarelaAkunKasBank','spDanaCadanganAkunKasBank','spWajibPostingAkunKasBank','spSukarelaPostingAkunKasBank'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value; sel.innerHTML = kasBankOpts || '<option value="">Belum ada akun Kas/Bank</option>';
     if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
   });
@@ -3808,6 +3920,7 @@ function subLedgerTambahan(akunId){
   if(akunId===role('simpananPokok')) kopAnggotaList.forEach(a=>{ tambahan += ((a.saldoAwal||{}).simpananPokok)||0; });
   if(akunId===role('simpananWajib')) kopAnggotaList.forEach(a=>{ tambahan += ((a.saldoAwal||{}).simpananWajib)||0; });
   if(akunId===role('simpananSukarela')) kopAnggotaList.forEach(a=>{ tambahan += ((a.saldoAwal||{}).simpananSukarela)||0; });
+  if(akunId===role('simpananDanaCadangan')) kopAnggotaList.forEach(a=>{ tambahan += ((a.saldoAwal||{}).simpananDanaCadangan)||0; });
   if(akunId===role('piutangKoperasi')) kopAnggotaList.forEach(a=>{ const sa=a.saldoAwal||{}; tambahan += (sa.pinjamanTunai||0) + (sa.piutangPenjualan||0); });
   return tambahan;
 }
@@ -4470,8 +4583,10 @@ function buildJurnal(){
   kasBankList.slice().sort(byTanggalSeq).forEach(k=>{
     const pinjamanTerkait = k.kopPinjamanId ? kopPinjamanList.find(x=>x.id===k.kopPinjamanId) : null;
     const anggotaId = pinjamanTerkait ? pinjamanTerkait.anggotaId : null;
-    if(k.tipe==='pembayaran'){ lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Pembayaran', akunId:k.akunLawan, debit:k.jumlah, kredit:0, projekId:k.projekId||null, anggotaId});
-      lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Pembayaran', akunId:k.akunUtama, debit:0, kredit:k.jumlah, projekId:k.projekId||null, anggotaId}); }
+    if(k.tipe==='pembayaran'){ const biayaAdmin=k.biayaAdmin||0;
+      lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Pembayaran', akunId:k.akunLawan, debit:k.jumlah+biayaAdmin, kredit:0, projekId:k.projekId||null, anggotaId});
+      lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Pembayaran', akunId:k.akunUtama, debit:0, kredit:k.jumlah, projekId:k.projekId||null, anggotaId});
+      if(biayaAdmin>0 && k.akunAdminId) lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:'Pendapatan Adm Pinjaman — '+(k.keterangan||''), akunId:k.akunAdminId, debit:0, kredit:biayaAdmin, projekId:k.projekId||null, anggotaId}); }
     else if(k.tipe==='penerimaan'){ lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Penerimaan', akunId:k.akunUtama, debit:k.jumlah, kredit:0, projekId:k.projekId||null, anggotaId});
       lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Penerimaan', akunId:k.akunLawan, debit:0, kredit:k.jumlah, projekId:k.projekId||null, anggotaId}); }
     else { lines.push({tanggal:k.tanggal, ref:k.noBukti, keterangan:k.keterangan||'Pindah buku', akunId:k.akunLawan, debit:k.jumlah, kredit:0});
@@ -4536,8 +4651,8 @@ function buildJurnal(){
   });
   kopSimpananList.slice().sort(byTanggalSeq).forEach(sIt=>{
     if(sIt.viaPayroll) return; // journal already covered by the payroll posting itself
-    const roleKey = sIt.tipe==='pokok' ? 'simpananPokok' : sIt.tipe==='sukarela' ? 'simpananSukarela' : 'simpananWajib';
-    const label = sIt.tipe==='pokok' ? 'Simpanan Pokok' : sIt.tipe==='sukarela' ? 'Simpanan Sukarela' : 'Simpanan Wajib';
+    const roleKey = sIt.tipe==='pokok' ? 'simpananPokok' : sIt.tipe==='sukarela' ? 'simpananSukarela' : sIt.tipe==='danaCadangan' ? 'simpananDanaCadangan' : 'simpananWajib';
+    const label = sIt.tipe==='pokok' ? 'Simpanan Pokok' : sIt.tipe==='sukarela' ? 'Simpanan Sukarela' : sIt.tipe==='danaCadangan' ? 'Simpanan Dana Cadangan' : 'Simpanan Wajib';
     lines.push({tanggal:sIt.tanggal, ref:sIt.noBukti, keterangan:label+' — '+(sIt.keterangan||''), akunId:sIt.akunKasBankId, debit:sIt.jumlah, kredit:0, anggotaId:sIt.anggotaId});
     lines.push({tanggal:sIt.tanggal, ref:sIt.noBukti, keterangan:label+' — '+(sIt.keterangan||''), akunId:role(roleKey), debit:0, kredit:sIt.jumlah, anggotaId:sIt.anggotaId});
   });
@@ -4656,7 +4771,7 @@ function renderKBPembayaran(){
   const rows = kasBankList.filter(k=>k.tipe==='pembayaran').sort((a,b)=>byTanggalSeq(b,a));
   if(!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
   tbody.innerHTML = rows.map(k=>`<tr><td class="txt">${k.noBukti}</td><td class="txt">${formatTanggal(k.tanggal)}</td>
-    <td class="txt">${akunLabel(k.akunUtama)}</td><td class="txt">${akunLabel(k.akunLawan)}${k.kopPinjamanId?' <span class="badge">Pinjaman Koperasi</span>':''}</td><td>${formatRupiah(k.jumlah)}</td>
+    <td class="txt">${akunLabel(k.akunUtama)}</td><td class="txt">${akunLabel(k.akunLawan)}${k.kopPinjamanId?' <span class="badge">Pinjaman Koperasi</span>':''}</td><td>${formatRupiah(k.jumlah)}${k.biayaAdmin>0?`<br><span class="hint" style="margin:0;">Pinjaman ${formatRupiah(k.jumlah+k.biayaAdmin)} − Adm ${formatRupiah(k.biayaAdmin)}</span>`:''}</td>
     <td class="txt">${k.keterangan||'-'}</td><td class="txt"><button type="button" class="btn-accent" onclick="cetakVoucherKasBank('${k.id}')">PDF</button> <button type="button" class="btn-danger" onclick="hapusKasBank('${k.id}')">Hapus</button></td></tr>`).join('');
 }
 document.getElementById('kbpJenis').addEventListener('change', e=>{
@@ -4665,7 +4780,13 @@ document.getElementById('kbpJenis').addEventListener('change', e=>{
   document.getElementById('kbpAnggotaField').style.display = kop ? 'flex' : 'none';
   document.getElementById('kbpJangkaField').style.display = kop ? 'flex' : 'none';
   document.getElementById('kbpAkunPiutangKopField').style.display = kop ? 'flex' : 'none';
+  document.getElementById('kbpDppField').style.display = kop ? 'flex' : 'none';
+  document.getElementById('kbpPpnField').style.display = kop ? 'flex' : 'none';
+  document.getElementById('kbpUangMukaField').style.display = kop ? 'flex' : 'none';
+  document.getElementById('kbpBiayaAdminField').style.display = kop ? 'flex' : 'none';
+  document.getElementById('kbpJumlahLabel').textContent = kop ? 'Jumlah Pinjaman (Rp)' : 'Jumlah (Rp)';
   document.getElementById('kbpAkunLawan').required = !kop;
+  if(!kop){ document.getElementById('kbpBiayaAdmin').value = 0; document.getElementById('kbpDpp').value=0; document.getElementById('kbpPpn').value=0; document.getElementById('kbpUangMuka').value=0; }
   updateKbpLimitInfo();
 });
 function updateKbpLimitInfo(){
@@ -4692,11 +4813,20 @@ document.getElementById('formKBPembayaran').addEventListener('submit', e=>{
     const anggotaId=document.getElementById('kbpAnggotaKoperasi').value;
     const jangkaWaktu=parseInt(document.getElementById('kbpJangkaWaktu').value,10)||1;
     const akunPiutangId = document.getElementById('kbpAkunPiutangKop').value || role('piutangKoperasi');
+    const biayaAdmin = parseRibuan(document.getElementById('kbpBiayaAdmin').value)||0;
+    const dpp = parseRibuan(document.getElementById('kbpDpp').value)||jumlah;
+    const ppn = parseRibuan(document.getElementById('kbpPpn').value)||0;
+    const uangMuka = parseRibuan(document.getElementById('kbpUangMuka').value)||0;
     if(!anggotaId){ alert('Pilih anggota/karyawan penerima pinjaman.'); return; }
     if(!akunPiutangId){ alert('Pilih sub-akun Piutang Koperasi, atau atur Akun Penting di Pengaturan.'); return; }
-    const kb = {id:uid(), seq:nextSeq(), tipe:'pembayaran', tanggal, noBukti:consumeNumber('kasBank'), akunUtama, akunLawan:akunPiutangId, jumlah, keterangan:keterangan||'Pinjaman anggota koperasi'};
+    if(biayaAdmin<0 || biayaAdmin>=jumlah){ alert('Biaya Adm Pinjaman harus lebih kecil dari Jumlah Pinjaman.'); return; }
+    const akunAdminId = biayaAdmin>0 ? role('pendapatanAdmPinjaman') : null;
+    if(biayaAdmin>0 && !akunAdminId){ alert('Akun "Pendapatan Adm Pinjaman" belum diatur di Pengaturan > Akun Penting.'); return; }
+    const jumlahTransfer = jumlah - biayaAdmin;
+    const ketPinjaman = keterangan || 'Pinjaman anggota koperasi';
+    const kb = {id:uid(), seq:nextSeq(), tipe:'pembayaran', tanggal, noBukti:consumeNumber('kasBank'), akunUtama, akunLawan:akunPiutangId, jumlah:jumlahTransfer, biayaAdmin, akunAdminId, keterangan: biayaAdmin>0 ? `${ketPinjaman} (dipotong adm ${formatRupiah(biayaAdmin)})` : ketPinjaman};
     kasBankList.push(kb); save.kasbank();
-    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'kas', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:kb.id, akunPiutangId});
+    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'kas', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:kb.id, akunPiutangId, dpp, ppn, uangMuka, biayaAdmin});
     save.kopPinjaman(); kb.kopPinjamanId = kopPinjamanList[kopPinjamanList.length-1].id; save.kasbank();
   } else {
     const akunLawan=document.getElementById('kbpAkunLawan').value;
@@ -4707,7 +4837,10 @@ document.getElementById('formKBPembayaran').addEventListener('submit', e=>{
   }
   e.target.reset(); document.getElementById('kbpJenis').value='umum'; document.getElementById('kbpAkunLawanField').style.display='flex';
   document.getElementById('kbpAnggotaField').style.display='none'; document.getElementById('kbpJangkaField').style.display='none';
-  document.getElementById('kbpAkunPiutangKopField').style.display='none';
+  document.getElementById('kbpAkunPiutangKopField').style.display='none'; document.getElementById('kbpBiayaAdminField').style.display='none';
+  document.getElementById('kbpDppField').style.display='none'; document.getElementById('kbpPpnField').style.display='none'; document.getElementById('kbpUangMukaField').style.display='none';
+  document.getElementById('kbpJumlahLabel').textContent='Jumlah (Rp)'; document.getElementById('kbpBiayaAdmin').value=0;
+  document.getElementById('kbpDpp').value=0; document.getElementById('kbpPpn').value=0; document.getElementById('kbpUangMuka').value=0;
   renderKBPembayaran();
 });
 function renderKBPenerimaan(){
@@ -4801,6 +4934,10 @@ function cetakVoucherKasBank(id){
     ['Projek', k.projekId?projekLabel(k.projekId):'-'],
     ['Keterangan', k.keterangan||'-'],
   ];
+  if(k.biayaAdmin>0){
+    infoRows.splice(5, 0, ['Jumlah Pinjaman', formatRupiah(k.jumlah+k.biayaAdmin)]);
+    infoRows.splice(6, 0, ['Biaya Adm Pinjaman', formatRupiah(k.biayaAdmin)+(k.akunAdminId?' — '+akunLabel(k.akunAdminId):'')]);
+  }
   cetakLaporanPdfMulti(`${jenisLabel} — ${k.noBukti||''}`, [
     { heading:'Detail Voucher', headers:['Uraian','Keterangan'], rows: infoRows },
   ]);
@@ -5479,7 +5616,9 @@ document.getElementById('formARReceipt').addEventListener('submit', e=>{
     if(!akunPiutangId){ alert('Pilih sub-akun Piutang Koperasi, atau atur Akun Penting di Pengaturan.'); return; }
     const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId, penjualanId, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan};
     arReceiptList.push(ar); save.arReceipt();
-    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ar.id, akunPiutangId});
+    const invTotal = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, invTotal.total - invTotal.pph);
+    const dpp = Math.round(invTotal.netto * (jumlah/dasarBayar)); const ppn = jumlah - dpp;
+    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ar.id, akunPiutangId, dpp, ppn, uangMuka:0, biayaAdmin:0});
     save.kopPinjaman();
   } else if(metode==='uangmuka'){
     if(!role('uangMukaPenjualan')){ alert('Akun Uang Muka Penjualan belum diatur di Pengaturan > Akun Penting.'); return; }
@@ -5734,7 +5873,9 @@ document.getElementById('formAPPayment').addEventListener('submit', e=>{
     if(!akunPiutangId){ alert('Pilih sub-akun Piutang Koperasi, atau atur Akun Penting di Pengaturan.'); return; }
     const ap = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('pembayaranAP'), tanggal, vendorId, pembelianId, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan};
     apPaymentList.push(ap); save.apPayment();
-    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'pembelian', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ap.id, akunPiutangId});
+    const invTotalB = invoicePembelianTotal(inv); const dasarBayarB = Math.max(1, invTotalB.total - invTotalB.pph);
+    const dppB = Math.round(invTotalB.nilaiBruto * (jumlah/dasarBayarB)); const ppnB = jumlah - dppB;
+    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'pembelian', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ap.id, akunPiutangId, dpp:dppB, ppn:ppnB, uangMuka:0, biayaAdmin:0});
     save.kopPinjaman();
   } else if(metode==='uangmuka'){
     if(!role('uangMukaPembelian')){ alert('Akun Uang Muka Pembelian belum diatur di Pengaturan > Akun Penting.'); return; }
@@ -6962,7 +7103,7 @@ function renderExportImportTahunan(){
   populateTahunSelectCore('edTahunExport', years, idx>=0 ? idx : years.length-1);
 }
 function subledgerRoleAkunIds(){
-  return [role('piutang'), role('utang'), role('piutangKoperasi'), role('simpananPokok'), role('simpananWajib'), role('simpananSukarela')].filter(Boolean);
+  return [role('piutang'), role('utang'), role('piutangKoperasi'), role('simpananPokok'), role('simpananWajib'), role('simpananSukarela'), role('simpananDanaCadangan')].filter(Boolean);
 }
 function kopSimpananTotalPerTanggal(anggotaId, tipe, cutoff){
   return kopSimpananList.filter(s=>s.anggotaId===anggotaId && s.tipe===tipe && (!cutoff || s.tanggal<=cutoff)).reduce((s,x)=>s+x.jumlah,0);
@@ -6980,6 +7121,7 @@ function kopAnggotaSaldoAkhir(a, cutoff){
     simpananPokok: (sa.simpananPokok||0) + kopSimpananTotalPerTanggal(a.id,'pokok',cutoff),
     simpananWajib: (sa.simpananWajib||0) + kopSimpananTotalPerTanggal(a.id,'wajib',cutoff),
     simpananSukarela: (sa.simpananSukarela||0) + kopSimpananTotalPerTanggal(a.id,'sukarela',cutoff),
+    simpananDanaCadangan: (sa.simpananDanaCadangan||0) + kopSimpananTotalPerTanggal(a.id,'danaCadangan',cutoff),
     pinjamanTunai: (sa.pinjamanTunai||0) + kopTotalPinjamanSisaPerTanggal(a.id,['kas'],cutoff),
     piutangPenjualan: (sa.piutangPenjualan||0) + kopTotalPinjamanSisaPerTanggal(a.id,['penjualan','pembelian'],cutoff)
   };
@@ -7075,7 +7217,7 @@ function terapkanImporDataAwalTahun(data){
       kopAnggotaList.push(a); anggotaDibuat++;
     }
     const sa = r.saldoAwal||{};
-    a.saldoAwal = { simpananPokok:sa.simpananPokok||0, simpananWajib:sa.simpananWajib||0, simpananSukarela:sa.simpananSukarela||0, pinjamanTunai:sa.pinjamanTunai||0, piutangPenjualan:sa.piutangPenjualan||0 };
+    a.saldoAwal = { simpananPokok:sa.simpananPokok||0, simpananWajib:sa.simpananWajib||0, simpananSukarela:sa.simpananSukarela||0, simpananDanaCadangan:sa.simpananDanaCadangan||0, pinjamanTunai:sa.pinjamanTunai||0, piutangPenjualan:sa.piutangPenjualan||0 };
     if(r.potonganBulanan) a.potonganBulanan = { pokok:r.potonganBulanan.pokok||0, wajib:r.potonganBulanan.wajib||0, sukarela:r.potonganBulanan.sukarela||0 };
   });
   save.kopAnggota(); save.jabatan();
@@ -7726,18 +7868,25 @@ function hapusJabatan(id){
 }
 
 function populateKopAnggotaSelects(){
-  const options = kopAnggotaList.map(a=>`<option value="${a.id}">${a.nip} — ${a.nama}</option>`).join('');
-  ['kpAnggota','dmAnggota','kbpAnggotaKoperasi','apAnggotaKoperasi','arAnggotaKoperasi','spPokokAnggota','spWajibAnggota','spSukarelaAnggota','wkPicGudang','wkPicProduksi'].forEach(id=>{
+  const aktif = kopAnggotaList.filter(a=>!a.tanggalKeluar);
+  const options = aktif.map(a=>`<option value="${a.id}">${a.nip} — ${a.nama}</option>`).join('');
+  const optionsSemua = kopAnggotaList.map(a=>`<option value="${a.id}">${a.nip} — ${a.nama}${a.tanggalKeluar?' (Keluar)':''}</option>`).join('');
+  ['kbpAnggotaKoperasi','apAnggotaKoperasi','arAnggotaKoperasi','spPokokAnggota','spWajibAnggota','spSukarelaAnggota','spDanaCadanganAnggota','ltbAnggota','wkPicGudang','wkPicProduksi'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value;
-    sel.innerHTML = kopAnggotaList.length ? ('<option value="">— Pilih NIP/Nama —</option>'+options) : '<option value="">Belum ada data anggota</option>';
+    sel.innerHTML = aktif.length ? ('<option value="">— Pilih NIP/Nama —</option>'+options) : '<option value="">Belum ada data anggota aktif</option>';
+    if(aktif.some(a=>a.id===prev)) sel.value=prev;
+  });
+  ['kpAnggota','dmAnggota'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel) return; const prev=sel.value;
+    sel.innerHTML = kopAnggotaList.length ? ('<option value="">— Pilih NIP/Nama —</option>'+optionsSemua) : '<option value="">Belum ada data anggota</option>';
     if(kopAnggotaList.some(a=>a.id===prev)) sel.value=prev;
   });
   const dpSel=document.getElementById('dpNip');
-  if(dpSel){ const prev=dpSel.value; dpSel.innerHTML = '<option value="">— Semua Anggota/Karyawan —</option>'+options; if(kopAnggotaList.some(a=>a.id===prev)) dpSel.value=prev; }
+  if(dpSel){ const prev=dpSel.value; dpSel.innerHTML = '<option value="">— Semua Anggota/Karyawan —</option>'+optionsSemua; if(kopAnggotaList.some(a=>a.id===prev)) dpSel.value=prev; }
   const laSel=document.getElementById('laFilterNip');
-  if(laSel){ const prev=laSel.value; laSel.innerHTML = '<option value="">— Semua NIP —</option>'+options; if(kopAnggotaList.some(a=>a.id===prev)) laSel.value=prev; }
+  if(laSel){ const prev=laSel.value; laSel.innerHTML = '<option value="">— Semua NIP —</option>'+optionsSemua; if(kopAnggotaList.some(a=>a.id===prev)) laSel.value=prev; }
   const ltaSel=document.getElementById('ltaFilterNip');
-  if(ltaSel){ const prev=ltaSel.value; ltaSel.innerHTML = '<option value="">— Semua NIP —</option>'+options; if(kopAnggotaList.some(a=>a.id===prev)) ltaSel.value=prev; }
+  if(ltaSel){ const prev=ltaSel.value; ltaSel.innerHTML = '<option value="">— Semua NIP —</option>'+optionsSemua; if(kopAnggotaList.some(a=>a.id===prev)) ltaSel.value=prev; }
 }
 function kopCicilanPaid(pinjamanId){ return kopCicilanList.filter(c=>c.pinjamanId===pinjamanId).reduce((s,c)=>s+c.jumlah,0); }
 function kopPinjamanSisa(p){ return p.jumlah - kopCicilanPaid(p.id); }
@@ -7777,6 +7926,7 @@ document.getElementById('formKopAnggota').addEventListener('submit', e=>{
     simpananPokok: parseRibuan(document.getElementById('kaSaldoSimpananPokok').value),
     simpananWajib: parseRibuan(document.getElementById('kaSaldoSimpananWajib').value),
     simpananSukarela: parseRibuan(document.getElementById('kaSaldoSimpananSukarela').value),
+    simpananDanaCadangan: parseRibuan(document.getElementById('kaSaldoSimpananDanaCadangan').value),
     pinjamanTunai: parseRibuan(document.getElementById('kaSaldoPinjamanTunai').value),
     piutangPenjualan: parseRibuan(document.getElementById('kaSaldoPiutangPenjualan').value)
   };
@@ -7794,12 +7944,12 @@ document.getElementById('formKopAnggota').addEventListener('submit', e=>{
     kopAnggotaList.push({id:uid(), nip, nama, jenisKelamin, nik, nitku, status, jabatanId, ptkp, alamat, telp, email, maksimalPinjaman, tanggalMasuk, tanggalKeluar, saldoAwal, potonganBulanan});
   }
   save.kopAnggota(); e.target.reset();
-  ['kaSaldoSimpananPokok','kaSaldoSimpananWajib','kaSaldoSimpananSukarela','kaSaldoPinjamanTunai','kaSaldoPiutangPenjualan','kaPotSpPokok','kaPotSpWajib','kaPotSpSukarela'].forEach(id=>document.getElementById(id).value='0');
+  ['kaSaldoSimpananPokok','kaSaldoSimpananWajib','kaSaldoSimpananSukarela','kaSaldoSimpananDanaCadangan','kaSaldoPinjamanTunai','kaSaldoPiutangPenjualan','kaPotSpPokok','kaPotSpWajib','kaPotSpSukarela'].forEach(id=>document.getElementById(id).value='0');
   renderKopAnggota(); renderAkun();
 });
 document.getElementById('btnBatalEditKopAnggota').addEventListener('click', ()=>{
   editingKopAnggotaId=null; document.getElementById('formKopAnggota').reset();
-  ['kaSaldoSimpananPokok','kaSaldoSimpananWajib','kaSaldoSimpananSukarela','kaSaldoPinjamanTunai','kaSaldoPiutangPenjualan','kaPotSpPokok','kaPotSpWajib','kaPotSpSukarela'].forEach(id=>document.getElementById(id).value='0');
+  ['kaSaldoSimpananPokok','kaSaldoSimpananWajib','kaSaldoSimpananSukarela','kaSaldoSimpananDanaCadangan','kaSaldoPinjamanTunai','kaSaldoPiutangPenjualan','kaPotSpPokok','kaPotSpWajib','kaPotSpSukarela'].forEach(id=>document.getElementById(id).value='0');
   document.getElementById('btnSimpanKopAnggota').textContent='+ Tambah'; document.getElementById('btnBatalEditKopAnggota').style.display='none';
 });
 function editKopAnggota(id){
@@ -7816,6 +7966,7 @@ function editKopAnggota(id){
   document.getElementById('kaSaldoSimpananPokok').value=formatRibuan(sa.simpananPokok||0);
   document.getElementById('kaSaldoSimpananWajib').value=formatRibuan(sa.simpananWajib||0);
   document.getElementById('kaSaldoSimpananSukarela').value=formatRibuan(sa.simpananSukarela||0);
+  document.getElementById('kaSaldoSimpananDanaCadangan').value=formatRibuan(sa.simpananDanaCadangan||0);
   document.getElementById('kaSaldoPinjamanTunai').value=formatRibuan(sa.pinjamanTunai||0);
   document.getElementById('kaSaldoPiutangPenjualan').value=formatRibuan(sa.piutangPenjualan||0);
   const pb = a.potonganBulanan||{};
@@ -8011,12 +8162,14 @@ document.getElementById('btnExportKopPenjualanXlsx').addEventListener('click', (
 });
 
 /* ============================================================= 8f-8h. KOPERASI - SIMPANAN (POKOK/WAJIB/SUKARELA) ============================================================= */
-const SIMPANAN_PREFIX = { pokok:'spPokok', wajib:'spWajib', sukarela:'spSukarela' };
-const SIMPANAN_LABEL = { pokok:'Simpanan Pokok', wajib:'Simpanan Wajib', sukarela:'Simpanan Sukarela' };
+const SIMPANAN_PREFIX = { pokok:'spPokok', wajib:'spWajib', sukarela:'spSukarela', danaCadangan:'spDanaCadangan' };
+const SIMPANAN_LABEL = { pokok:'Simpanan Pokok', wajib:'Simpanan Wajib', sukarela:'Simpanan Sukarela', danaCadangan:'Simpanan Dana Cadangan' };
 function renderKopSimpanan(tipe){
   const px = SIMPANAN_PREFIX[tipe];
   populateKopAnggotaSelects(); populateAkunSelects();
   if(!document.getElementById(px+'Tanggal').value) document.getElementById(px+'Tanggal').valueAsDate = new Date();
+  const postingTanggalEl = document.getElementById(px+'PostingTanggal');
+  if(postingTanggalEl && !postingTanggalEl.value) postingTanggalEl.valueAsDate = new Date();
   updateSpRekomendasi(tipe);
   const tbody=document.getElementById('tbody'+px[0].toUpperCase()+px.slice(1)), empty=document.getElementById('empty'+px[0].toUpperCase()+px.slice(1)), summary=document.getElementById('summary'+px[0].toUpperCase()+px.slice(1));
   const rows = kopSimpananList.filter(s=>s.tipe===tipe);
@@ -8029,7 +8182,7 @@ function renderKopSimpanan(tipe){
     <td class="txt"><button type="button" class="btn-danger" onclick="hapusKopSimpanan('${i.id}')">Hapus</button></td></tr>`; }).join('');
   summary.innerHTML = `<div class="summary-card yellow"><div class="label">Total ${SIMPANAN_LABEL[tipe]} Terkumpul</div><div class="value">${formatRupiah(total)}</div></div>`;
 }
-['pokok','wajib','sukarela'].forEach(tipe=>{
+['pokok','wajib','sukarela','danaCadangan'].forEach(tipe=>{
   const px = SIMPANAN_PREFIX[tipe];
   document.getElementById('formKopSp'+px.slice(2)).addEventListener('submit', e=>{
     e.preventDefault();
@@ -8043,7 +8196,31 @@ function renderKopSimpanan(tipe){
   });
 });
 function hapusKopSimpanan(id){ const s=kopSimpananList.find(x=>x.id===id); if(!s) return; if(cekTerkunciDanTolak(s.tanggal)) return; if(!confirm('Hapus catatan simpanan ini?')) return; kopSimpananList=kopSimpananList.filter(x=>x.id!==id); save.kopSimpanan();
-  ['pokok','wajib','sukarela'].forEach(renderKopSimpanan); }
+  ['pokok','wajib','sukarela','danaCadangan'].forEach(renderKopSimpanan); }
+
+/* Posting massal Simpanan Wajib/Sukarela untuk seluruh anggota aktif, berdasarkan "Potongan Simpanan per Bulan" di Data Anggota/Karyawan */
+function postingSimpananBulanan(tipe){
+  const px = SIMPANAN_PREFIX[tipe];
+  const tanggal = document.getElementById(px+'PostingTanggal').value;
+  const akunKasBankId = document.getElementById(px+'PostingAkunKasBank').value;
+  if(!tanggal){ alert('Pilih tanggal posting.'); return; }
+  if(!akunKasBankId){ alert('Pilih akun Kas/Bank penerima.'); return; }
+  if(cekTerkunciDanTolak(tanggal)) return;
+  const periode = tanggal.slice(0,7);
+  const target = kopAnggotaList.filter(a=>!a.tanggalKeluar && (a.potonganBulanan&&a.potonganBulanan[tipe])>0);
+  if(!target.length){ alert('Tidak ada anggota/karyawan aktif dengan nominal "Potongan Simpanan '+SIMPANAN_LABEL[tipe].replace('Simpanan ','')+'" yang diisi di Data Anggota/Karyawan.'); return; }
+  let posted=0, skipped=0;
+  target.forEach(a=>{
+    if(kopSimpananList.some(s=>s.anggotaId===a.id && s.tipe===tipe && s.periodePosting===periode)){ skipped++; return; }
+    kopSimpananList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('iuranKoperasi'), tipe, anggotaId:a.id, tanggal, jumlah:a.potonganBulanan[tipe], akunKasBankId, keterangan:'Posting '+SIMPANAN_LABEL[tipe]+' bulan '+periode, periodePosting:periode, viaPostingBulanan:true});
+    posted++;
+  });
+  if(posted) save.kopSimpanan();
+  alert(`Posting ${SIMPANAN_LABEL[tipe]} selesai: ${posted} anggota diposting.`+(skipped?` ${skipped} anggota dilewati karena sudah diposting untuk periode ${periode}.`:''));
+  renderKopSimpanan(tipe);
+}
+document.getElementById('btnPostingSpWajib').addEventListener('click', ()=>postingSimpananBulanan('wajib'));
+document.getElementById('btnPostingSpSukarela').addEventListener('click', ()=>postingSimpananBulanan('sukarela'));
 
 /* Angka rekomendasi Jumlah, diambil dari "Potongan Simpanan per Bulan" pada Data Anggota/Karyawan Koperasi */
 function updateSpRekomendasi(tipe){
@@ -8056,15 +8233,15 @@ function updateSpRekomendasi(tipe){
   if(!a || !rekom){ hint.innerHTML=''; return; }
   hint.innerHTML = `Rekomendasi (Potongan Simpanan per Bulan): <b>${formatRupiah(rekom)}</b> <a href="#" onclick="const el=document.getElementById('${px}Jumlah'); el.value=formatRibuan(String(${rekom})); el.dispatchEvent(new Event('input')); return false;" style="margin-left:4px;">Pakai</a>`;
 }
-['pokok','wajib','sukarela'].forEach(tipe=>{
+['pokok','wajib','sukarela','danaCadangan'].forEach(tipe=>{
   const px = SIMPANAN_PREFIX[tipe];
   document.getElementById(px+'Anggota').addEventListener('change', ()=>updateSpRekomendasi(tipe));
 });
 
-/* Impor Excel, Export Excel & Cetak PDF untuk Simpanan Pokok/Wajib/Sukarela */
-const SIMPANAN_CAP = { pokok:'SpPokok', wajib:'SpWajib', sukarela:'SpSukarela' };
+/* Impor Excel, Export Excel & Cetak PDF untuk Simpanan Pokok/Wajib/Sukarela/Dana Cadangan */
+const SIMPANAN_CAP = { pokok:'SpPokok', wajib:'SpWajib', sukarela:'SpSukarela', danaCadangan:'SpDanaCadangan' };
 function excelDateToIso(d){ const yyyy=d.getFullYear(), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0'); return `${yyyy}-${mm}-${dd}`; }
-['pokok','wajib','sukarela'].forEach(tipe=>{
+['pokok','wajib','sukarela','danaCadangan'].forEach(tipe=>{
   const cap = SIMPANAN_CAP[tipe];
   document.getElementById('btnUnduhTemplate'+cap).addEventListener('click', ()=>{
     if(!kopAnggotaList.length){ alert('Belum ada data anggota/karyawan koperasi.'); return; }
@@ -8147,11 +8324,12 @@ function kopLaporanAnggotaRows(){
     const simpananPokok = (sa.simpananPokok||0) + kopTotalSimpanan(a.id,'pokok');
     const simpananWajib = (sa.simpananWajib||0) + kopTotalSimpanan(a.id,'wajib');
     const simpananSukarela = (sa.simpananSukarela||0) + kopTotalSimpanan(a.id,'sukarela');
+    const simpananDanaCadangan = (sa.simpananDanaCadangan||0) + kopTotalSimpanan(a.id,'danaCadangan');
     const pinjamanTunai = (sa.pinjamanTunai||0) + kopTotalPinjamanPokok(a.id,['kas']);
     const piutangPenjualan = (sa.piutangPenjualan||0) + kopTotalPinjamanPokok(a.id,['penjualan','pembelian']);
     const sisaPinjamanTunai = (sa.pinjamanTunai||0) + kopTotalPinjamanSisa(a.id,['kas']);
     const sisaPiutangPenjualan = (sa.piutangPenjualan||0) + kopTotalPinjamanSisa(a.id,['penjualan','pembelian']);
-    return { nip:a.nip, nama:a.nama, jabatan:kopAnggotaJabatanLabel(a), simpananPokok, simpananWajib, simpananSukarela, pinjamanTunai, piutangPenjualan, sisaPinjamanTunai, sisaPiutangPenjualan };
+    return { nip:a.nip, nama:a.nama, jabatan:kopAnggotaJabatanLabel(a), simpananPokok, simpananWajib, simpananSukarela, simpananDanaCadangan, pinjamanTunai, piutangPenjualan, sisaPinjamanTunai, sisaPiutangPenjualan };
   });
 }
 function renderLaporanAnggota(){
@@ -8160,7 +8338,7 @@ function renderLaporanAnggota(){
   const rows = kopLaporanAnggotaRows();
   if(!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
   tbody.innerHTML = rows.map(r=>`<tr><td class="txt">${r.nip}</td><td class="txt">${r.nama}</td><td class="txt">${r.jabatan}</td>
-    <td>${formatRupiah(r.simpananPokok)}</td><td>${formatRupiah(r.simpananWajib)}</td><td>${formatRupiah(r.simpananSukarela)}</td>
+    <td>${formatRupiah(r.simpananPokok)}</td><td>${formatRupiah(r.simpananWajib)}</td><td>${formatRupiah(r.simpananSukarela)}</td><td>${formatRupiah(r.simpananDanaCadangan)}</td>
     <td>${formatRupiah(r.pinjamanTunai)}</td><td>${formatRupiah(r.piutangPenjualan)}</td>
     <td>${formatRupiah(r.sisaPinjamanTunai)}</td><td>${formatRupiah(r.sisaPiutangPenjualan)}</td></tr>`).join('');
 }
@@ -8168,14 +8346,14 @@ document.getElementById('laFilterNip').addEventListener('change', renderLaporanA
 document.getElementById('laFilterJabatan').addEventListener('change', renderLaporanAnggota);
 document.getElementById('btnExportKopAnggotaXlsx').addEventListener('click', ()=>{
   const rows = kopLaporanAnggotaRows(); if(!rows.length){ alert('Belum ada data.'); return; }
-  const header=['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Pinjaman Tunai','Piutang Penjualan','Sisa Pinjaman Tunai','Sisa Piutang Penjualan'];
-  const data=rows.map(r=>[r.nip, r.nama, r.jabatan, r.simpananPokok, r.simpananWajib, r.simpananSukarela, r.pinjamanTunai, r.piutangPenjualan, r.sisaPinjamanTunai, r.sisaPiutangPenjualan]);
+  const header=['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Simpanan Dana Cadangan','Pinjaman Tunai','Piutang Penjualan','Sisa Pinjaman Tunai','Sisa Piutang Penjualan'];
+  const data=rows.map(r=>[r.nip, r.nama, r.jabatan, r.simpananPokok, r.simpananWajib, r.simpananSukarela, r.simpananDanaCadangan, r.pinjamanTunai, r.piutangPenjualan, r.sisaPinjamanTunai, r.sisaPiutangPenjualan]);
   exportAoaXlsx(header, data, 'Laporan Anggota', 'laporan-anggota-koperasi.xlsx');
 });
 document.getElementById('btnCetakKopAnggotaPdf').addEventListener('click', ()=>{
   const rows = kopLaporanAnggotaRows(); if(!rows.length){ alert('Belum ada data.'); return; }
-  const data = rows.map(r=>[r.nip, r.nama, r.jabatan, formatRupiah(r.simpananPokok), formatRupiah(r.simpananWajib), formatRupiah(r.simpananSukarela), formatRupiah(r.pinjamanTunai), formatRupiah(r.piutangPenjualan), formatRupiah(r.sisaPinjamanTunai), formatRupiah(r.sisaPiutangPenjualan)]);
-  cetakLaporanPdf('Laporan Anggota Koperasi', ['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Pinjaman Tunai','Piutang Penjualan','Sisa Pinjaman Tunai','Sisa Piutang Penjualan'], data, {landscape:true});
+  const data = rows.map(r=>[r.nip, r.nama, r.jabatan, formatRupiah(r.simpananPokok), formatRupiah(r.simpananWajib), formatRupiah(r.simpananSukarela), formatRupiah(r.simpananDanaCadangan), formatRupiah(r.pinjamanTunai), formatRupiah(r.piutangPenjualan), formatRupiah(r.sisaPinjamanTunai), formatRupiah(r.sisaPiutangPenjualan)]);
+  cetakLaporanPdf('Laporan Anggota Koperasi', ['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Simpanan Dana Cadangan','Pinjaman Tunai','Piutang Penjualan','Sisa Pinjaman Tunai','Sisa Piutang Penjualan'], data, {landscape:true});
 });
 
 /* ============================================================= 8j. KOPERASI - LAPORAN TAGIHAN ANGGOTA ============================================================= */
@@ -8206,10 +8384,11 @@ function kopLaporanTagihanRows(dari, sampai){
     const simpananPokok = kopTotalSimpananPeriode(a.id,'pokok',dari,sampai);
     const simpananWajib = kopTotalSimpananPeriode(a.id,'wajib',dari,sampai);
     const simpananSukarela = kopTotalSimpananPeriode(a.id,'sukarela',dari,sampai);
+    const simpananDanaCadangan = kopTotalSimpananPeriode(a.id,'danaCadangan',dari,sampai);
     const potonganPinjamanTunai = kopTotalCicilanPeriode(a.id,['kas'],dari,sampai);
     const piutangPenjualan = kopTotalCicilanPeriode(a.id,['penjualan'],dari,sampai);
-    const totalTagihan = simpananPokok + simpananWajib + simpananSukarela + potonganPinjamanTunai + piutangPenjualan;
-    return { nip:a.nip, nama:a.nama, jabatan:kopAnggotaJabatanLabel(a), simpananPokok, simpananWajib, simpananSukarela, potonganPinjamanTunai, piutangPenjualan, totalTagihan };
+    const totalTagihan = simpananPokok + simpananWajib + simpananSukarela + simpananDanaCadangan + potonganPinjamanTunai + piutangPenjualan;
+    return { nip:a.nip, nama:a.nama, jabatan:kopAnggotaJabatanLabel(a), simpananPokok, simpananWajib, simpananSukarela, simpananDanaCadangan, potonganPinjamanTunai, piutangPenjualan, totalTagihan };
   });
 }
 function renderLaporanTagihan(){
@@ -8223,12 +8402,12 @@ function renderLaporanTagihan(){
   const tbody=document.getElementById('tbodyLaporanTagihan'), empty=document.getElementById('emptyLaporanTagihan'), tfoot=document.getElementById('tfootLaporanTagihan');
   const rows = kopLaporanTagihanRows(dari, sampai);
   if(!rows.length){ tbody.innerHTML=''; tfoot.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
-  let tSp=0,tSw=0,tSs=0,tPt=0,tPp=0,tTot=0;
-  tbody.innerHTML = rows.map(r=>{ tSp+=r.simpananPokok; tSw+=r.simpananWajib; tSs+=r.simpananSukarela; tPt+=r.potonganPinjamanTunai; tPp+=r.piutangPenjualan; tTot+=r.totalTagihan;
+  let tSp=0,tSw=0,tSs=0,tSd=0,tPt=0,tPp=0,tTot=0;
+  tbody.innerHTML = rows.map(r=>{ tSp+=r.simpananPokok; tSw+=r.simpananWajib; tSs+=r.simpananSukarela; tSd+=r.simpananDanaCadangan; tPt+=r.potonganPinjamanTunai; tPp+=r.piutangPenjualan; tTot+=r.totalTagihan;
     return `<tr><td class="txt">${r.nip}</td><td class="txt">${r.nama}</td><td class="txt">${r.jabatan}</td>
-    <td>${formatRupiah(r.simpananPokok)}</td><td>${formatRupiah(r.simpananWajib)}</td><td>${formatRupiah(r.simpananSukarela)}</td>
+    <td>${formatRupiah(r.simpananPokok)}</td><td>${formatRupiah(r.simpananWajib)}</td><td>${formatRupiah(r.simpananSukarela)}</td><td>${formatRupiah(r.simpananDanaCadangan)}</td>
     <td>${formatRupiah(r.potonganPinjamanTunai)}</td><td>${formatRupiah(r.piutangPenjualan)}</td><td><b>${formatRupiah(r.totalTagihan)}</b></td></tr>`; }).join('');
-  tfoot.innerHTML = `<tr><td class="txt" colspan="3">Total</td><td>${formatRupiah(tSp)}</td><td>${formatRupiah(tSw)}</td><td>${formatRupiah(tSs)}</td><td>${formatRupiah(tPt)}</td><td>${formatRupiah(tPp)}</td><td><b>${formatRupiah(tTot)}</b></td></tr>`;
+  tfoot.innerHTML = `<tr><td class="txt" colspan="3">Total</td><td>${formatRupiah(tSp)}</td><td>${formatRupiah(tSw)}</td><td>${formatRupiah(tSs)}</td><td>${formatRupiah(tSd)}</td><td>${formatRupiah(tPt)}</td><td>${formatRupiah(tPp)}</td><td><b>${formatRupiah(tTot)}</b></td></tr>`;
 }
 document.getElementById('ltaDari').addEventListener('change', renderLaporanTagihan);
 document.getElementById('ltaSampai').addEventListener('change', renderLaporanTagihan);
@@ -8237,16 +8416,165 @@ document.getElementById('ltaFilterJabatan').addEventListener('change', renderLap
 document.getElementById('btnExportLapTagihanXlsx').addEventListener('click', ()=>{
   const dari = document.getElementById('ltaDari').value, sampai = document.getElementById('ltaSampai').value;
   const rows = kopLaporanTagihanRows(dari, sampai); if(!rows.length){ alert('Tidak ada data pada rentang tanggal ini.'); return; }
-  const header=['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Potongan Pinjaman Tunai','Piutang Penjualan','Total Tagihan'];
-  const data=rows.map(r=>[r.nip, r.nama, r.jabatan, r.simpananPokok, r.simpananWajib, r.simpananSukarela, r.potonganPinjamanTunai, r.piutangPenjualan, r.totalTagihan]);
+  const header=['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Simpanan Dana Cadangan','Potongan Pinjaman Tunai','Piutang Penjualan','Total Tagihan'];
+  const data=rows.map(r=>[r.nip, r.nama, r.jabatan, r.simpananPokok, r.simpananWajib, r.simpananSukarela, r.simpananDanaCadangan, r.potonganPinjamanTunai, r.piutangPenjualan, r.totalTagihan]);
   exportAoaXlsx(header, data, 'Laporan Tagihan Anggota', `laporan-tagihan-anggota-koperasi-${dari}_${sampai}.xlsx`);
 });
 document.getElementById('btnCetakLapTagihanPdf').addEventListener('click', ()=>{
   const dari = document.getElementById('ltaDari').value, sampai = document.getElementById('ltaSampai').value;
   const rows = kopLaporanTagihanRows(dari, sampai); if(!rows.length){ alert('Tidak ada data pada rentang tanggal ini.'); return; }
-  const data = rows.map(r=>[r.nip, r.nama, r.jabatan, formatRupiah(r.simpananPokok), formatRupiah(r.simpananWajib), formatRupiah(r.simpananSukarela), formatRupiah(r.potonganPinjamanTunai), formatRupiah(r.piutangPenjualan), formatRupiah(r.totalTagihan)]);
-  cetakLaporanPdf(`Laporan Tagihan Anggota (${formatTanggal(dari)} s/d ${formatTanggal(sampai)})`, ['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Potongan Pinjaman Tunai','Piutang Penjualan','Total Tagihan'], data, {landscape:true});
+  const data = rows.map(r=>[r.nip, r.nama, r.jabatan, formatRupiah(r.simpananPokok), formatRupiah(r.simpananWajib), formatRupiah(r.simpananSukarela), formatRupiah(r.simpananDanaCadangan), formatRupiah(r.potonganPinjamanTunai), formatRupiah(r.piutangPenjualan), formatRupiah(r.totalTagihan)]);
+  cetakLaporanPdf(`Laporan Tagihan Anggota (${formatTanggal(dari)} s/d ${formatTanggal(sampai)})`, ['NIP','Nama','Jabatan','Simpanan Pokok','Simpanan Wajib','Simpanan Sukarela','Simpanan Dana Cadangan','Potongan Pinjaman Tunai','Piutang Penjualan','Total Tagihan'], data, {landscape:true});
 });
+
+/* ===== Laporan Transaksi Bulanan per Anggota (Koperasi & Bengkel, dikelompokkan per sub-akun piutang) ===== */
+const LTB_HEADER = ['ID / No. Bukti','DPP','PPN','Tmp','Pokok (DPP+PPN)','Uang Muka','Biaya Adm','Pokok - UM','Pelunasan','Potongan Gaji','Sld','Saldo'];
+function tanggalAkhirBulan(bulan, tahun){ return new Date(tahun, bulan, 0).toISOString().slice(0,10); }
+function tanggalSebelumBulan(bulan, tahun){ const d=new Date(tahun, bulan-1, 1); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+function kopLaporanBulananData(anggotaId, bulan, tahun){
+  if(!anggotaId) return null;
+  const awal = `${tahun}-${String(bulan).padStart(2,'0')}-01`, akhir = tanggalAkhirBulan(bulan, tahun), sebelum = tanggalSebelumBulan(bulan, tahun);
+  const pinjamanRelevan = kopPinjamanList.filter(p=>p.anggotaId===anggotaId && p.tanggal<=akhir)
+    .filter(p=> kopPinjamanSisaPerTanggal(p, sebelum) > 0.5 || (p.tanggal>=awal && p.tanggal<=akhir));
+  const perAkun = {};
+  pinjamanRelevan.forEach(p=>{
+    const akunId = p.akunPiutangId || role('piutangKoperasi');
+    const akun = getAkun(akunId);
+    if(!perAkun[akunId]) perAkun[akunId] = { akunId, kode: akun?akun.kode:'', nama: akun?akun.nama:'(akun dihapus)', rows:[] };
+    const cicilanPeriode = kopCicilanList.filter(c=>c.pinjamanId===p.id && c.tanggal>=awal && c.tanggal<=akhir);
+    const potonganGaji = cicilanPeriode.filter(c=>c.viaPayroll || c.keterangan===undefined).reduce((s,c)=>s+c.jumlah,0);
+    const pelunasan = cicilanPeriode.filter(c=>!c.viaPayroll && c.keterangan!==undefined).reduce((s,c)=>s+c.jumlah,0);
+    const saldo = kopPinjamanSisaPerTanggal(p, akhir);
+    const cicilanCountToDate = kopCicilanList.filter(c=>c.pinjamanId===p.id && c.tanggal<=akhir).length;
+    const sld = Math.max(0, (p.jangkaWaktu||0) - cicilanCountToDate);
+    const dpp = p.dpp!=null ? p.dpp : p.jumlah;
+    const ppn = p.ppn||0, uangMuka = p.uangMuka||0, biayaAdmin = p.biayaAdmin||0;
+    const pokok = dpp+ppn, pokokUM = pokok - uangMuka;
+    perAkun[akunId].rows.push({ id:p.noBukti||p.id, dpp, ppn, tmp:p.jangkaWaktu||0, pokok, uangMuka, biayaAdmin, pokokUM, pelunasan, potonganGaji, sld, saldo });
+  });
+  const groups = Object.values(perAkun).sort(kodeSort).map(g=>{
+    g.rows.sort((a,b)=>String(a.id).localeCompare(String(b.id), undefined, {numeric:true}));
+    const subtotal = { dpp:0,ppn:0,pokok:0,uangMuka:0,biayaAdmin:0,pokokUM:0,pelunasan:0,potonganGaji:0,saldo:0 };
+    g.rows.forEach(r=>{ subtotal.dpp+=r.dpp; subtotal.ppn+=r.ppn; subtotal.pokok+=r.pokok; subtotal.uangMuka+=r.uangMuka; subtotal.biayaAdmin+=r.biayaAdmin; subtotal.pokokUM+=r.pokokUM; subtotal.pelunasan+=r.pelunasan; subtotal.potonganGaji+=r.potonganGaji; subtotal.saldo+=r.saldo; });
+    return { ...g, subtotal };
+  });
+  const total = { dpp:0,ppn:0,pokok:0,uangMuka:0,biayaAdmin:0,pokokUM:0,pelunasan:0,potonganGaji:0,saldo:0 };
+  groups.forEach(g=>{ Object.keys(total).forEach(k=>total[k]+=g.subtotal[k]); });
+  return { groups, total };
+}
+function renderLaporanBulanan(){
+  populateKopAnggotaSelects();
+  if(!document.getElementById('ltbTahun').value) document.getElementById('ltbTahun').value = new Date().getFullYear();
+  if(!document.getElementById('ltbBulan').value) document.getElementById('ltbBulan').value = new Date().getMonth()+1;
+  const host = document.getElementById('ltbHasil');
+  const anggotaId = document.getElementById('ltbAnggota').value;
+  const bulan = parseInt(document.getElementById('ltbBulan').value,10), tahun = parseInt(document.getElementById('ltbTahun').value,10)||new Date().getFullYear();
+  if(!anggotaId){ host.innerHTML = '<div class="empty">Pilih anggota/karyawan terlebih dahulu.</div>'; return; }
+  const data = kopLaporanBulananData(anggotaId, bulan, tahun);
+  if(!data.groups.length){ host.innerHTML = '<div class="empty">Tidak ada transaksi pinjaman/piutang berjalan pada periode ini.</div>'; return; }
+  const rowHtml = r => `<tr><td class="txt">${r.id}</td><td>${formatRupiah(r.dpp)}</td><td>${formatRupiah(r.ppn)}</td><td>${r.tmp}</td>
+    <td>${formatRupiah(r.pokok)}</td><td>${formatRupiah(r.uangMuka)}</td><td>${formatRupiah(r.biayaAdmin)}</td><td>${formatRupiah(r.pokokUM)}</td>
+    <td>${formatRupiah(r.pelunasan)}</td><td>${formatRupiah(r.potonganGaji)}</td><td>${r.sld}</td><td>${formatRupiah(r.saldo)}</td></tr>`;
+  const subtotalHtml = (g,i) => `<tr style="font-weight:700; background:var(--bg-soft);"><td class="txt">Subtotal : ${i+1} - ${g.nama}</td><td>${formatRupiah(g.subtotal.dpp)}</td><td>${formatRupiah(g.subtotal.ppn)}</td><td></td>
+    <td>${formatRupiah(g.subtotal.pokok)}</td><td>${formatRupiah(g.subtotal.uangMuka)}</td><td>${formatRupiah(g.subtotal.biayaAdmin)}</td><td>${formatRupiah(g.subtotal.pokokUM)}</td>
+    <td>${formatRupiah(g.subtotal.pelunasan)}</td><td>${formatRupiah(g.subtotal.potonganGaji)}</td><td></td><td>${formatRupiah(g.subtotal.saldo)}</td></tr>`;
+  const bodyHtml = data.groups.map((g,i)=> g.rows.map(rowHtml).join('') + subtotalHtml(g,i) + `<tr><td colspan="12" style="border:none; padding:4px;"></td></tr>`).join('');
+  const totalHtml = `<tr style="font-weight:700; border-top:2px solid var(--navy-deep);"><td class="txt">Total</td><td>${formatRupiah(data.total.dpp)}</td><td>${formatRupiah(data.total.ppn)}</td><td></td>
+    <td>${formatRupiah(data.total.pokok)}</td><td>${formatRupiah(data.total.uangMuka)}</td><td>${formatRupiah(data.total.biayaAdmin)}</td><td>${formatRupiah(data.total.pokokUM)}</td>
+    <td>${formatRupiah(data.total.pelunasan)}</td><td>${formatRupiah(data.total.potonganGaji)}</td><td></td><td>${formatRupiah(data.total.saldo)}</td></tr>`;
+  host.innerHTML = `<div class="table-scroll"><table><thead><tr>${LTB_HEADER.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${bodyHtml}${totalHtml}</tbody></table></div>`;
+}
+document.getElementById('ltbBulan').addEventListener('change', renderLaporanBulanan);
+document.getElementById('ltbTahun').addEventListener('change', renderLaporanBulanan);
+document.getElementById('ltbAnggota').addEventListener('change', renderLaporanBulanan);
+document.getElementById('btnExportLapBulananXlsx').addEventListener('click', ()=>{
+  const anggotaId = document.getElementById('ltbAnggota').value; if(!anggotaId){ alert('Pilih anggota/karyawan terlebih dahulu.'); return; }
+  const bulan = parseInt(document.getElementById('ltbBulan').value,10), tahun = parseInt(document.getElementById('ltbTahun').value,10);
+  const data = kopLaporanBulananData(anggotaId, bulan, tahun); if(!data.groups.length){ alert('Tidak ada data pada periode ini.'); return; }
+  const a = getKopAnggota(anggotaId);
+  const aoa = [];
+  data.groups.forEach((g,i)=>{
+    g.rows.forEach(r=> aoa.push([r.id, r.dpp, r.ppn, r.tmp, r.pokok, r.uangMuka, r.biayaAdmin, r.pokokUM, r.pelunasan, r.potonganGaji, r.sld, r.saldo]));
+    aoa.push([`Subtotal : ${i+1} - ${g.nama}`, g.subtotal.dpp, g.subtotal.ppn, '', g.subtotal.pokok, g.subtotal.uangMuka, g.subtotal.biayaAdmin, g.subtotal.pokokUM, g.subtotal.pelunasan, g.subtotal.potonganGaji, '', g.subtotal.saldo]);
+    aoa.push([]);
+  });
+  aoa.push(['Total', data.total.dpp, data.total.ppn, '', data.total.pokok, data.total.uangMuka, data.total.biayaAdmin, data.total.pokokUM, data.total.pelunasan, data.total.potonganGaji, '', data.total.saldo]);
+  exportAoaXlsx(LTB_HEADER, aoa, 'Laporan Bulanan', `laporan-transaksi-bulanan-${a?a.nip:anggotaId}-${tahun}-${bulan}.xlsx`);
+});
+document.getElementById('btnCetakLapBulananPdf').addEventListener('click', ()=>{
+  const anggotaId = document.getElementById('ltbAnggota').value; if(!anggotaId){ alert('Pilih anggota/karyawan terlebih dahulu.'); return; }
+  const bulan = parseInt(document.getElementById('ltbBulan').value,10), tahun = parseInt(document.getElementById('ltbTahun').value,10);
+  const data = kopLaporanBulananData(anggotaId, bulan, tahun); if(!data.groups.length){ alert('Tidak ada data pada periode ini.'); return; }
+  const a = getKopAnggota(anggotaId);
+  const rows = [];
+  data.groups.forEach((g,i)=>{
+    g.rows.forEach(r=> rows.push([r.id, formatRupiah(r.dpp), formatRupiah(r.ppn), r.tmp, formatRupiah(r.pokok), formatRupiah(r.uangMuka), formatRupiah(r.biayaAdmin), formatRupiah(r.pokokUM), formatRupiah(r.pelunasan), formatRupiah(r.potonganGaji), r.sld, formatRupiah(r.saldo)]));
+    rows.push([`<b>Subtotal : ${i+1} - ${g.nama}</b>`, `<b>${formatRupiah(g.subtotal.dpp)}</b>`, `<b>${formatRupiah(g.subtotal.ppn)}</b>`, '', `<b>${formatRupiah(g.subtotal.pokok)}</b>`, `<b>${formatRupiah(g.subtotal.uangMuka)}</b>`, `<b>${formatRupiah(g.subtotal.biayaAdmin)}</b>`, `<b>${formatRupiah(g.subtotal.pokokUM)}</b>`, `<b>${formatRupiah(g.subtotal.pelunasan)}</b>`, `<b>${formatRupiah(g.subtotal.potonganGaji)}</b>`, '', `<b>${formatRupiah(g.subtotal.saldo)}</b>`]);
+  });
+  rows.push([`<b>Total</b>`, `<b>${formatRupiah(data.total.dpp)}</b>`, `<b>${formatRupiah(data.total.ppn)}</b>`, '', `<b>${formatRupiah(data.total.pokok)}</b>`, `<b>${formatRupiah(data.total.uangMuka)}</b>`, `<b>${formatRupiah(data.total.biayaAdmin)}</b>`, `<b>${formatRupiah(data.total.pokokUM)}</b>`, `<b>${formatRupiah(data.total.pelunasan)}</b>`, `<b>${formatRupiah(data.total.potonganGaji)}</b>`, '', `<b>${formatRupiah(data.total.saldo)}</b>`]);
+  cetakLaporanPdf(`Laporan Transaksi Bulan Ini — Bulan ${bulan}, Tahun ${tahun} — ${a?a.nip+' / '+a.nama:''}`, LTB_HEADER, rows, {landscape:true});
+});
+
+/* ===== Laporan Transaksi Bulanan - Rekap (semua anggota, satu baris per sub-akun piutang) ===== */
+const LTBR_HEADER = ['Category','DPP','PPN','Pokok (DPP+PPN)','Uang Muka','Biaya Adm','Pokok - UM','Pelunasan','Potongan Gaji','Saldo'];
+function kopLaporanBulananRekapData(bulan, tahun){
+  const awal = `${tahun}-${String(bulan).padStart(2,'0')}-01`, akhir = tanggalAkhirBulan(bulan, tahun), sebelum = tanggalSebelumBulan(bulan, tahun);
+  const pinjamanRelevan = kopPinjamanList.filter(p=>p.tanggal<=akhir)
+    .filter(p=> kopPinjamanSisaPerTanggal(p, sebelum) > 0.5 || (p.tanggal>=awal && p.tanggal<=akhir));
+  const perAkun = {};
+  pinjamanRelevan.forEach(p=>{
+    const akunId = p.akunPiutangId || role('piutangKoperasi');
+    const akun = getAkun(akunId);
+    if(!perAkun[akunId]) perAkun[akunId] = { akunId, kode: akun?akun.kode:'', nama: akun?akun.nama:'(akun dihapus)', dpp:0,ppn:0,pokok:0,uangMuka:0,biayaAdmin:0,pokokUM:0,pelunasan:0,potonganGaji:0,saldo:0 };
+    const cicilanPeriode = kopCicilanList.filter(c=>c.pinjamanId===p.id && c.tanggal>=awal && c.tanggal<=akhir);
+    const potonganGaji = cicilanPeriode.filter(c=>c.viaPayroll || c.keterangan===undefined).reduce((s,c)=>s+c.jumlah,0);
+    const pelunasan = cicilanPeriode.filter(c=>!c.viaPayroll && c.keterangan!==undefined).reduce((s,c)=>s+c.jumlah,0);
+    const saldo = kopPinjamanSisaPerTanggal(p, akhir);
+    const dpp = p.dpp!=null ? p.dpp : p.jumlah;
+    const ppn = p.ppn||0, uangMuka = p.uangMuka||0, biayaAdmin = p.biayaAdmin||0;
+    const pokok = dpp+ppn, pokokUM = pokok - uangMuka;
+    const g = perAkun[akunId];
+    g.dpp+=dpp; g.ppn+=ppn; g.pokok+=pokok; g.uangMuka+=uangMuka; g.biayaAdmin+=biayaAdmin; g.pokokUM+=pokokUM; g.pelunasan+=pelunasan; g.potonganGaji+=potonganGaji; g.saldo+=saldo;
+  });
+  const rows = Object.values(perAkun).sort(kodeSort);
+  const total = { dpp:0,ppn:0,pokok:0,uangMuka:0,biayaAdmin:0,pokokUM:0,pelunasan:0,potonganGaji:0,saldo:0 };
+  rows.forEach(r=>{ Object.keys(total).forEach(k=>total[k]+=r[k]); });
+  return { rows, total };
+}
+function renderLaporanBulananRekap(){
+  if(!document.getElementById('ltbrTahun').value) document.getElementById('ltbrTahun').value = new Date().getFullYear();
+  if(!document.getElementById('ltbrBulan').value) document.getElementById('ltbrBulan').value = new Date().getMonth()+1;
+  const host = document.getElementById('ltbrHasil');
+  const bulan = parseInt(document.getElementById('ltbrBulan').value,10), tahun = parseInt(document.getElementById('ltbrTahun').value,10)||new Date().getFullYear();
+  const data = kopLaporanBulananRekapData(bulan, tahun);
+  if(!data.rows.length){ host.innerHTML = '<div class="empty">Tidak ada transaksi pinjaman/piutang berjalan pada periode ini.</div>'; return; }
+  const rowHtml = (r,i) => `<tr><td class="txt">${i+1} - ${r.nama}</td><td>${formatRupiah(r.dpp)}</td><td>${formatRupiah(r.ppn)}</td>
+    <td>${formatRupiah(r.pokok)}</td><td>${formatRupiah(r.uangMuka)}</td><td>${formatRupiah(r.biayaAdmin)}</td><td>${formatRupiah(r.pokokUM)}</td>
+    <td>${formatRupiah(r.pelunasan)}</td><td>${formatRupiah(r.potonganGaji)}</td><td>${formatRupiah(r.saldo)}</td></tr>`;
+  const totalHtml = `<tr style="font-weight:700; border-top:2px solid var(--navy-deep);"><td class="txt">Total</td><td>${formatRupiah(data.total.dpp)}</td><td>${formatRupiah(data.total.ppn)}</td>
+    <td>${formatRupiah(data.total.pokok)}</td><td>${formatRupiah(data.total.uangMuka)}</td><td>${formatRupiah(data.total.biayaAdmin)}</td><td>${formatRupiah(data.total.pokokUM)}</td>
+    <td>${formatRupiah(data.total.pelunasan)}</td><td>${formatRupiah(data.total.potonganGaji)}</td><td>${formatRupiah(data.total.saldo)}</td></tr>`;
+  host.innerHTML = `<div class="table-scroll"><table><thead><tr>${LTBR_HEADER.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${data.rows.map(rowHtml).join('')}${totalHtml}</tbody></table></div>`;
+}
+document.getElementById('ltbrBulan').addEventListener('change', renderLaporanBulananRekap);
+document.getElementById('ltbrTahun').addEventListener('change', renderLaporanBulananRekap);
+document.getElementById('btnExportLapBulananRekapXlsx').addEventListener('click', ()=>{
+  const bulan = parseInt(document.getElementById('ltbrBulan').value,10), tahun = parseInt(document.getElementById('ltbrTahun').value,10);
+  const data = kopLaporanBulananRekapData(bulan, tahun); if(!data.rows.length){ alert('Tidak ada data pada periode ini.'); return; }
+  const aoa = data.rows.map((r,i)=>[`${i+1} - ${r.nama}`, r.dpp, r.ppn, r.pokok, r.uangMuka, r.biayaAdmin, r.pokokUM, r.pelunasan, r.potonganGaji, r.saldo]);
+  aoa.push(['Total', data.total.dpp, data.total.ppn, data.total.pokok, data.total.uangMuka, data.total.biayaAdmin, data.total.pokokUM, data.total.pelunasan, data.total.potonganGaji, data.total.saldo]);
+  exportAoaXlsx(LTBR_HEADER, aoa, 'Rekap Bulanan', `laporan-transaksi-bulanan-rekap-${tahun}-${bulan}.xlsx`);
+});
+document.getElementById('btnCetakLapBulananRekapPdf').addEventListener('click', ()=>{
+  const bulan = parseInt(document.getElementById('ltbrBulan').value,10), tahun = parseInt(document.getElementById('ltbrTahun').value,10);
+  const data = kopLaporanBulananRekapData(bulan, tahun); if(!data.rows.length){ alert('Tidak ada data pada periode ini.'); return; }
+  const rows = data.rows.map((r,i)=>[`${i+1} - ${r.nama}`, formatRupiah(r.dpp), formatRupiah(r.ppn), formatRupiah(r.pokok), formatRupiah(r.uangMuka), formatRupiah(r.biayaAdmin), formatRupiah(r.pokokUM), formatRupiah(r.pelunasan), formatRupiah(r.potonganGaji), formatRupiah(r.saldo)]);
+  rows.push([`<b>Total</b>`, `<b>${formatRupiah(data.total.dpp)}</b>`, `<b>${formatRupiah(data.total.ppn)}</b>`, `<b>${formatRupiah(data.total.pokok)}</b>`, `<b>${formatRupiah(data.total.uangMuka)}</b>`, `<b>${formatRupiah(data.total.biayaAdmin)}</b>`, `<b>${formatRupiah(data.total.pokokUM)}</b>`, `<b>${formatRupiah(data.total.pelunasan)}</b>`, `<b>${formatRupiah(data.total.potonganGaji)}</b>`, `<b>${formatRupiah(data.total.saldo)}</b>`]);
+  cetakLaporanPdf(`Laporan Transaksi Bulan Ini — Rekap — Bulan ${bulan}, Tahun ${tahun}`, LTBR_HEADER, rows, {landscape:true});
+});
+
+
+
 
 /* ============================================================= 11a. PAYROLL - AKUN PENCATATAN ============================================================= */
 const PAYROLL_STATUS_LABEL = { tambahDPP:'Menambah DPP Gaji', tambahGaji:'Menambah Gaji', kurangDPP:'Mengurangi DPP Gaji', kurangGaji:'Mengurangi Gaji', penambah:'Menambah Gaji', pengurang:'Mengurangi Gaji' };
