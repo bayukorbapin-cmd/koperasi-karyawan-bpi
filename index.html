@@ -805,14 +805,16 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Penanggung Jawab</label><input type="text" id="cPic" style="min-width:170px;"></div>
           <div class="field"><label>No. Telp</label><input type="text" id="cTelp" style="min-width:150px;"></div>
           <div class="field"><label>Email</label><input type="email" id="cEmail" style="min-width:200px;"></div>
+          <div class="field"><label>Terhubung ke Anggota/Karyawan Koperasi (opsional)</label><select id="cAnggotaKoperasi" style="min-width:220px;"></select></div>
         </div>
+        <p class="hint" style="margin-top:-6px;">Kalau pelanggan ini juga Anggota/Karyawan Koperasi, hubungkan di sini. Efeknya: saat membuat <b>Penerimaan Piutang</b> untuk invoice pelanggan ini, Metode Penerimaan otomatis terisi "Piutang Anggota Koperasi" beserta nama anggotanya — tidak perlu jurnal manual atau cari NIP satu-satu lagi.</p>
         <div class="form-row"><div class="field" style="flex:1;"><label>Alamat</label><textarea id="cAlamat" style="min-width:360px;"></textarea></div>
           <button type="submit" class="btn-primary" id="btnSimpanCustomer">+ Tambah Pelanggan</button>
           <button type="button" class="btn-ghost" id="btnBatalEditCustomer" style="display:none;">Batal</button>
         </div>
       </form>
       <div class="table-scroll"><table>
-        <thead><tr><th>Kode</th><th>Nama</th><th>NPWP</th><th>NITKU</th><th>PIC</th><th>No. Telp</th><th>Email</th><th>Alamat</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Kode</th><th>Nama</th><th>NPWP</th><th>NITKU</th><th>PIC</th><th>No. Telp</th><th>Email</th><th>Alamat</th><th>Anggota Koperasi</th><th>Aksi</th></tr></thead>
         <tbody id="tbodyCustomer"></tbody>
       </table></div>
       <div class="empty" id="emptyCustomer" style="display:none;">Belum ada pelanggan.</div>
@@ -4349,13 +4351,15 @@ function populateCustomerSelects(){
 }
 function renderCustomer(){
   const tbody=document.getElementById('tbodyCustomer'), empty=document.getElementById('emptyCustomer');
-  if(!customerList.length){ tbody.innerHTML=''; empty.style.display='block'; populateCustomerSelects(); renderSaldoCustomer(); return; }
+  if(!customerList.length){ tbody.innerHTML=''; empty.style.display='block'; populateCustomerSelects(); populateKopAnggotaSelects(); renderSaldoCustomer(); return; }
   empty.style.display='none';
-  tbody.innerHTML = customerList.map(c=>`<tr><td class="txt">${c.kode}</td><td class="txt">${c.nama}</td><td class="txt">${c.npwp||'-'}</td><td class="txt">${c.nitku||'-'}</td>
+  tbody.innerHTML = customerList.map(c=>{ const ag = c.anggotaId ? kopAnggotaList.find(a=>a.id===c.anggotaId) : null;
+    return `<tr><td class="txt">${c.kode}</td><td class="txt">${c.nama}</td><td class="txt">${c.npwp||'-'}</td><td class="txt">${c.nitku||'-'}</td>
     <td class="txt">${c.pic||'-'}</td><td class="txt">${c.telp||'-'}</td><td class="txt">${c.email||'-'}</td><td class="txt">${(c.alamat||'-').slice(0,40)}</td>
+    <td class="txt">${ag?ag.nip+' — '+ag.nama:'-'}</td>
     <td class="txt"><button type="button" class="btn-ghost" onclick="editCustomer('${c.id}')">Ubah</button>
-    <button type="button" class="btn-danger" onclick="hapusCustomer('${c.id}')">Hapus</button></td></tr>`).join('');
-  populateCustomerSelects(); renderSaldoCustomer();
+    <button type="button" class="btn-danger" onclick="hapusCustomer('${c.id}')">Hapus</button></td></tr>`; }).join('');
+  populateCustomerSelects(); populateKopAnggotaSelects(); renderSaldoCustomer();
 }
 document.getElementById('formCustomer').addEventListener('submit', e=>{
   e.preventDefault();
@@ -4363,16 +4367,17 @@ document.getElementById('formCustomer').addEventListener('submit', e=>{
   const npwp=document.getElementById('cNpwp').value.trim(), pic=document.getElementById('cPic').value.trim(), alamat=document.getElementById('cAlamat').value.trim();
   const nitku=document.getElementById('cNitku').value.trim();
   const telp=document.getElementById('cTelp').value.trim(), email=document.getElementById('cEmail').value.trim();
+  const anggotaId=document.getElementById('cAnggotaKoperasi').value||null;
   if(!kode||!nama) return;
   if(npwp && !/^\d{16}$/.test(npwp)){ alert('NPWP harus 16 digit angka.'); return; }
   if(nitku && !/^\d{24}$/.test(nitku)){ alert('NITKU harus 24 digit angka.'); return; }
   if(editingCustomerId){
     if(customerList.some(x=>x.kode===kode && x.id!==editingCustomerId)){ alert('Kode pelanggan sudah digunakan.'); return; }
-    const c=getCustomer(editingCustomerId); Object.assign(c,{kode,nama,npwp,nitku,pic,telp,email,alamat});
+    const c=getCustomer(editingCustomerId); Object.assign(c,{kode,nama,npwp,nitku,pic,telp,email,alamat,anggotaId});
     editingCustomerId=null; document.getElementById('btnSimpanCustomer').textContent='+ Tambah Pelanggan'; document.getElementById('btnBatalEditCustomer').style.display='none';
   } else {
     if(customerList.some(x=>x.kode===kode)){ alert('Kode pelanggan sudah digunakan.'); return; }
-    customerList.push({id:uid(), kode, nama, npwp, nitku, pic, telp, email, alamat});
+    customerList.push({id:uid(), kode, nama, npwp, nitku, pic, telp, email, alamat, anggotaId});
   }
   save.customer(); e.target.reset(); renderCustomer();
 });
@@ -4386,6 +4391,7 @@ function editCustomer(id){
   document.getElementById('cNitku').value=c.nitku||'';
   document.getElementById('cPic').value=c.pic||''; document.getElementById('cTelp').value=c.telp||''; document.getElementById('cEmail').value=c.email||'';
   document.getElementById('cAlamat').value=c.alamat||'';
+  document.getElementById('cAnggotaKoperasi').value=c.anggotaId||'';
   document.getElementById('btnSimpanCustomer').textContent='Simpan Perubahan'; document.getElementById('btnBatalEditCustomer').style.display='inline-block';
   document.querySelector('.navitem[data-target="penjualan-pelanggan"]').click(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -5565,7 +5571,34 @@ function populateInvoiceBelumLunasSelect(selId, custSelId, listSource, outstandi
   const items = listSource.filter(i=> (mode==='S'?i.customerId===custId : i.vendorId===custId) ).filter(i=> outstandingFn(i) > 0.5);
   sel.innerHTML = items.length ? items.map(i=>`<option value="${i.id}">${i.noInvoice} — sisa ${formatRupiah(outstandingFn(i))}</option>`).join('') : '<option value="">Tidak ada invoice belum lunas untuk pilihan ini</option>';
 }
-document.getElementById('arCustomer').addEventListener('change', ()=>{ populateInvoiceBelumLunasSelect('arInvoice','arCustomer', penjualanList, arOutstanding, 'S'); renderARHistori(); updateArUangMukaInfo(); });
+document.getElementById('arCustomer').addEventListener('change', ()=>{
+  populateInvoiceBelumLunasSelect('arInvoice','arCustomer', penjualanList, arOutstanding, 'S');
+  renderARHistori(); updateArUangMukaInfo();
+  applyAutoKoperasiLink();
+});
+document.getElementById('arInvoice').addEventListener('change', applyAutoKoperasiLink);
+/* Kalau Pelanggan terhubung ke Anggota/Karyawan Koperasi (menu 4. Data Pelanggan), otomatis isi
+   Metode Penerimaan = "Piutang Anggota Koperasi" beserta nama anggota & sub-akun piutangnya
+   (kalau invoice sudah pakai Akun Piutang yang sama), supaya tidak perlu jurnal manual/cari NIP sendiri.
+   Pengguna tetap bisa mengubah manual sebelum menyimpan kalau transaksi ini mau dibayar tunai/transfer. */
+function applyAutoKoperasiLink(){
+  const customerId = document.getElementById('arCustomer').value;
+  const c = customerId ? getCustomer(customerId) : null;
+  const invoiceId = document.getElementById('arInvoice').value;
+  const inv = invoiceId ? penjualanList.find(x=>x.id===invoiceId) : null;
+  const jumlahField = document.getElementById('arJumlah');
+  if(inv && (!jumlahField.value || parseFloat(jumlahField.value)===0)) jumlahField.value = Math.round(arOutstanding(inv));
+  if(c && c.anggotaId){
+    const metodeSel = document.getElementById('arMetode');
+    metodeSel.value = 'koperasi';
+    metodeSel.dispatchEvent(new Event('change'));
+    document.getElementById('arAnggotaKoperasi').value = c.anggotaId;
+    if(inv && inv.piutangAkunId){
+      const akun = getAkun(inv.piutangAkunId);
+      if(akun && akun.isPiutangKop) document.getElementById('arAkunPiutangKop').value = inv.piutangAkunId;
+    }
+  }
+}
 document.getElementById('arMetode').addEventListener('change', e=>{
   const kop = e.target.value==='koperasi';
   const um = e.target.value==='uangmuka';
@@ -7886,6 +7919,8 @@ function populateKopAnggotaSelects(){
     sel.innerHTML = aktif.length ? ('<option value="">— Pilih NIP/Nama —</option>'+options) : '<option value="">Belum ada data anggota aktif</option>';
     if(aktif.some(a=>a.id===prev)) sel.value=prev;
   });
+  const cAgSel = document.getElementById('cAnggotaKoperasi');
+  if(cAgSel){ const prev=cAgSel.value; cAgSel.innerHTML = '<option value="">— Tidak terhubung —</option>'+options; if(aktif.some(a=>a.id===prev)) cAgSel.value=prev; }
   ['kpAnggota','dmAnggota'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value;
     sel.innerHTML = kopAnggotaList.length ? ('<option value="">— Pilih NIP/Nama —</option>'+optionsSemua) : '<option value="">Belum ada data anggota</option>';
