@@ -729,11 +729,12 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Berdasarkan Pesanan (opsional)</label><select id="sPesanan" style="min-width:180px;"></select></div>
           <div class="field"><label>Tanggal</label><input type="date" id="sTanggal" required></div>
           <div class="field"><label>Pelanggan</label><select id="sCustomer" required style="min-width:220px;"></select></div>
+          <div class="field"><label>Akun Piutang</label><select id="sAkunPiutang" style="min-width:220px;"></select></div>
           <div class="field"><label>Projek</label><select id="sProjek" style="min-width:180px;"></select></div>
           <div class="field"><label>Termin (hari, opsional)</label><input type="number" id="sTermin" min="0" placeholder="mis. 30" style="min-width:110px;"></div>
           <div class="field"><label>Keterangan</label><input type="text" id="sKeterangan" style="min-width:160px;"></div>
         </div>
-        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa.</p>
+        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini).</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Jenis</th><th>Nama Barang/Jasa</th><th>Jumlah</th><th>Harga</th><th>Total Harga</th><th>Aksi</th></tr></thead>
           <tbody id="sItemsWrap"></tbody>
@@ -3910,6 +3911,12 @@ function populateAkunSelects(){
     sel.innerHTML = piutangKopOpts || '<option value="">Belum ada sub-akun piutang koperasi</option>';
     if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
   });
+  const sAkunPiutangSel = document.getElementById('sAkunPiutang');
+  if(sAkunPiutangSel){
+    const prev = sAkunPiutangSel.value;
+    sAkunPiutangSel.innerHTML = '<option value="">— Otomatis: Piutang Usaha —</option>' + piutangKopOpts;
+    if([...sAkunPiutangSel.options].some(o=>o.value===prev)) sAkunPiutangSel.value=prev;
+  }
 }
 function kodeSort(a,b){ return a.kode.localeCompare(b.kode, undefined, {numeric:true}); }
 function subLedgerTambahan(akunId){
@@ -4562,7 +4569,7 @@ function buildJurnal(){
     const c=getCustomer(s.customerId); const tot=invoicePenjualanTotal(s);
     const items = s.items||[];
     const ket = `Penjualan ${s.noInvoice||''} — ${c?c.kode+' '+c.nama:'-'} (${items.map(itemLabel).join(', ')})`;
-    lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId:role('piutang'), debit:tot.total, kredit:0, projekId:s.projekId||null, customerId:s.customerId});
+    lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId:(s.piutangAkunId||role('piutang')), debit:tot.total, kredit:0, projekId:s.projekId||null, customerId:s.customerId});
     const revGroup = {};
     items.forEach(it=>{ const amt=(it.qty||0)*(it.harga||0); if(amt<=0) return;
       const akunId = it.barangId ? ((getBarang(it.barangId)||{}).akunPenjualan || role('penjualan')) : role('penjualan');
@@ -4571,7 +4578,7 @@ function buildJurnal(){
     if(tot.diskon>0) lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId:role('diskonPenjualan'), debit:tot.diskon, kredit:0, projekId:s.projekId||null, customerId:s.customerId});
     if(tot.ppn>0) lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket, akunId:role('ppnKeluaran'), debit:0, kredit:tot.ppn, projekId:s.projekId||null, customerId:s.customerId});
     if(tot.pph>0 && s.pphAkunId) lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket+' (dipotong PPh oleh pelanggan)', akunId:s.pphAkunId, debit:tot.pph, kredit:0, projekId:s.projekId||null, customerId:s.customerId});
-    if(tot.pph>0 && s.pphAkunId) lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket+' (dipotong PPh oleh pelanggan)', akunId:role('piutang'), debit:0, kredit:tot.pph, projekId:s.projekId||null, customerId:s.customerId});
+    if(tot.pph>0 && s.pphAkunId) lines.push({tanggal:s.tanggal, ref:s.noInvoice, keterangan:ket+' (dipotong PPh oleh pelanggan)', akunId:(s.piutangAkunId||role('piutang')), debit:0, kredit:tot.pph, projekId:s.projekId||null, customerId:s.customerId});
     const hppGroup = {}, persGroup = {};
     items.filter(it=>it.tipe==='barang').forEach(it=>{ const hpp=getHppForItem(it.id, it.barangId); if(hpp<=0) return;
       const b=getBarang(it.barangId);
@@ -4631,7 +4638,7 @@ function buildJurnal(){
     const label = labelPrefix + (invRef?.noInvoice ? ` ${invRef.noInvoice}` : '') + ' — ';
     const anggotaId = r.metode==='koperasi' ? (kopPinjamanList.find(p=>p.sourceRefId===r.id)||{}).anggotaId : null;
     lines.push({tanggal:r.tanggal, ref:r.noBukti, keterangan:label+(r.keterangan||''), akunId:akunSumber, debit:r.jumlah, kredit:0, anggotaId, customerId:r.customerId});
-    lines.push({tanggal:r.tanggal, ref:r.noBukti, keterangan:label+(r.keterangan||''), akunId:role('piutang'), debit:0, kredit:r.jumlah, anggotaId, customerId:r.customerId});
+    lines.push({tanggal:r.tanggal, ref:r.noBukti, keterangan:label+(r.keterangan||''), akunId:((invRef&&invRef.piutangAkunId)||role('piutang')), debit:0, kredit:r.jumlah, anggotaId, customerId:r.customerId});
   });
   apPaymentList.slice().sort(byTanggalSeq).forEach(r=>{
     const akunTujuan = r.metode==='koperasi' ? (r.akunPiutangId||role('piutangKoperasi')) : r.metode==='uangmuka' ? role('uangMukaPembelian') : r.akunKasBankId;
@@ -5139,6 +5146,7 @@ function editPenjualan(id){
   document.getElementById('sPphAkunField').style.display = inv.pph ? 'flex' : 'none';
   document.getElementById('sPphPercent').value = inv.pphPercent||0;
   if(inv.pphAkunId) document.getElementById('sPphAkun').value = inv.pphAkunId;
+  document.getElementById('sAkunPiutang').value = inv.piutangAkunId||'';
   document.getElementById('sKodeTransaksi').value = inv.kodeTransaksi||'01';
   document.getElementById('sTermin').value = (inv.termin!==null && inv.termin!==undefined) ? inv.termin : '';
   sPenjualanItems = (inv.items||[]).map(it=>({tipe:it.tipe, barangId:it.barangId, deskripsiJasa:it.deskripsiJasa, qty:it.qty, harga:it.harga, hargaManual:true}));
@@ -5162,6 +5170,7 @@ document.getElementById('formPenjualan').addEventListener('submit', e=>{
   const ppn=document.getElementById('sPpnCheck').checked, ppnPercent=parseFloat(document.getElementById('sPpnPercent').value||0);
   const pph=document.getElementById('sPphCheck').checked, pphPercent=parseFloat(document.getElementById('sPphPercent').value||0);
   const pphAkunId=document.getElementById('sPphAkun').value||null;
+  const piutangAkunId=document.getElementById('sAkunPiutang').value||null;
   const keterangan=document.getElementById('sKeterangan').value.trim();
   const terminVal=document.getElementById('sTermin').value; const termin = terminVal!=='' ? parseInt(terminVal,10) : null;
   const kodeTransaksi=document.getElementById('sKodeTransaksi').value||'01';
@@ -5188,11 +5197,11 @@ document.getElementById('formPenjualan').addEventListener('submit', e=>{
   if(removedInv){
     if(!noInvoice) noInvoice = removedInv.noInvoice;
     if(!noFaktur) noFaktur = removedInv.noFaktur;
-    penjualanList.splice(removedIdx,0,{...removedInv, noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, keterangan, termin, kodeTransaksi, items});
+    penjualanList.splice(removedIdx,0,{...removedInv, noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, piutangAkunId, keterangan, termin, kodeTransaksi, items});
   } else {
     if(!noInvoice) noInvoice = consumeNumber('invoicePenjualan');
     if(!noFaktur && ppn) noFaktur = consumeNumber('fakturPenjualan');
-    penjualanList.push({id:uid(), seq:nextSeq(), noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, keterangan, termin, kodeTransaksi, items});
+    penjualanList.push({id:uid(), seq:nextSeq(), noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, piutangAkunId, keterangan, termin, kodeTransaksi, items});
   }
   save.penjualan();
   e.target.reset();
