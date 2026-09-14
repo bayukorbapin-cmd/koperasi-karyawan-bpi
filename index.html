@@ -870,6 +870,13 @@ tfoot td.txt{text-align:left;}
     </div>
     <p class="page-sub" style="margin-top:-6px;">Kalau baru menambah/mengubah invoice, pelanggan, atau data anggota koperasi di menu lain dan daftarnya belum muncul di sini, klik <b>Refresh Data</b>.</p>
     <div class="card">
+      <h3 style="margin-top:0;">Invoice Piutang Koperasi Belum Lunas</h3>
+      <p class="hint" style="margin-top:-6px;">Klik <b>Posting</b> untuk langsung mencatat pelunasan penuh invoice ini sebagai Piutang Anggota Koperasi (dicicil anggota sesuai Jangka Waktu yang diisi). Kalau mau bayar sebagian atau lewat Kas/Bank biasa, gunakan form di bawah.</p>
+      <div class="table-scroll"><table><thead><tr><th class="txt">No. Invoice</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Akun Piutang</th><th>Sisa Piutang</th><th>Aksi</th></tr></thead>
+      <tbody id="tbodyARKoperasiBelumLunas"></tbody></table></div>
+      <div class="empty" id="emptyARKoperasiBelumLunas" style="display:none;">Tidak ada invoice Piutang Koperasi yang belum lunas.</div>
+    </div>
+    <div class="card">
       <form id="formARReceipt">
         <div class="form-row">
           <div class="field"><label>Tanggal</label><input type="date" id="arTanggal" required></div>
@@ -5654,9 +5661,48 @@ function renderARHistori(){
     return `<tr><td class="txt">${r.noBukti}</td><td class="txt">${formatTanggal(r.tanggal)}</td><td class="txt">${inv?inv.noInvoice:'(dihapus)'}</td>
     <td class="txt">${metode}</td><td>${formatRupiah(r.jumlah)}</td></tr>`; }).join('');
 }
+function renderARKoperasiBelumLunas(){
+  const tbody=document.getElementById('tbodyARKoperasiBelumLunas'), empty=document.getElementById('emptyARKoperasiBelumLunas');
+  const rows = penjualanList.filter(inv=>{
+    const akun = inv.piutangAkunId ? getAkun(inv.piutangAkunId) : null;
+    return akun && akun.isPiutangKop && arOutstanding(inv) > 0.5;
+  }).sort(byTanggalSeq);
+  if(!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
+  tbody.innerHTML = rows.map(inv=>{ const c=getCustomer(inv.customerId);
+    return `<tr><td class="txt">${inv.noInvoice}</td><td class="txt">${formatTanggal(inv.tanggal)}</td>
+    <td class="txt">${c?c.kode+' — '+c.nama:'-'}</td><td class="txt">${akunLabel(inv.piutangAkunId)}</td>
+    <td>${formatRupiah(arOutstanding(inv))}</td>
+    <td class="txt"><button type="button" class="btn-primary" onclick="postingARKoperasi('${inv.id}')">Posting</button></td></tr>`; }).join('');
+}
+function postingARKoperasi(penjualanId){
+  const inv = penjualanList.find(x=>x.id===penjualanId);
+  if(!inv){ alert('Invoice tidak ditemukan (mungkin sudah dihapus). Klik Refresh Data.'); renderARKoperasiBelumLunas(); return; }
+  const sisa = arOutstanding(inv);
+  if(sisa <= 0.5){ alert('Invoice ini sudah lunas.'); renderARReceipt(); return; }
+  const c = getCustomer(inv.customerId);
+  const anggotaId = inv.anggotaId || (c && c.anggotaId) || null;
+  if(!anggotaId){ alert('Invoice ini belum terhubung ke Anggota/Karyawan Koperasi. Silakan pilih Pelanggan & Invoice ini secara manual di form di bawah, lalu pilih anggotanya sebelum menyimpan.'); return; }
+  const akunPiutangId = inv.piutangAkunId;
+  const jwInput = prompt(`Posting pelunasan penuh invoice ${inv.noInvoice} sebesar ${formatRupiah(sisa)} sebagai Piutang Anggota Koperasi.\n\nJangka Waktu cicilan (bulan)?`, '12');
+  if(jwInput===null) return;
+  const jangkaWaktu = parseInt(jwInput,10);
+  if(!jangkaWaktu || jangkaWaktu<1){ alert('Jangka Waktu tidak valid.'); return; }
+  const tanggal = todayIso();
+  if(cekTerkunciDanTolak(tanggal)) return;
+  const jumlah = Math.round(sisa);
+  const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId:inv.customerId, penjualanId:inv.id, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan:'Posting pelunasan piutang koperasi'};
+  arReceiptList.push(ar); save.arReceipt();
+  const invTotal = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, invTotal.total - invTotal.pph);
+  const dpp = Math.round(invTotal.netto * (jumlah/dasarBayar)); const ppn = jumlah - dpp;
+  kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ar.id, akunPiutangId, dpp, ppn, uangMuka:0, biayaAdmin:0});
+  save.kopPinjaman();
+  renderARReceipt(); renderPenjualan(); renderUMPenjualan();
+  alert(`Berhasil diposting sebagai penerimaan ${ar.noBukti}.`);
+}
 function renderARReceipt(){
   populateCustomerSelects(); populateAkunSelects(); populateKopAnggotaSelects();
   populateInvoiceBelumLunasSelect('arInvoice','arCustomer', penjualanList, arOutstanding, 'S');
+  renderARKoperasiBelumLunas();
   renderARHistori(); updateArUangMukaInfo();
   const tbody=document.getElementById('tbodyARReceipt'), empty=document.getElementById('emptyARReceipt');
   if(!arReceiptList.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
