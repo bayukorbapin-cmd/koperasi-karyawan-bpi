@@ -1659,7 +1659,7 @@ tfoot td.txt{text-align:left;}
     </div>
     <div class="card">
       <h3>Riwayat Potongan</h3>
-      <div class="table-scroll"><table><thead><tr><th>Tanggal</th><th>No. Bukti</th><th>Sumber Pinjaman</th><th>Akun Kas/Bank</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+      <div class="table-scroll"><table><thead><tr><th>Tanggal</th><th>No. Bukti</th><th>Sumber Pinjaman</th><th>Akun Kas/Bank / Sub-akun Piutang Koperasi</th><th>Jumlah</th><th>Aksi</th></tr></thead>
       <tbody id="tbodyRiwayatPotongan"></tbody></table></div>
       <div class="empty" id="emptyRiwayatPotongan" style="display:none;">Belum ada riwayat potongan.</div>
     </div>
@@ -8270,8 +8270,12 @@ function renderRiwayatPotongan(){
   const rows = kopCicilanList.filter(c=> !anggotaId || c.anggotaId===anggotaId).sort((a,b)=>byTanggalSeq(b,a));
   if(!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
   tbody.innerHTML = rows.map(c=>{ const p=kopPinjamanList.find(x=>x.id===c.pinjamanId);
+    /* Potongan yang lahir otomatis dari Penerimaan Penjualan (tipe 'penjualan') tidak punya mutasi
+       Kas/Bank sungguhan — itu perpindahan dari Piutang Usaha ke Piutang Koperasi. Untuk baris ini,
+       tampilkan Sub-akun Piutang Koperasi dari pinjamannya, bukan Akun Kas/Bank yang kosong. */
+    const akunTampil = (p && p.tipe==='penjualan') ? akunLabel(p.akunPiutangId) : akunLabel(c.akunKasBankId);
     return `<tr><td class="txt">${formatTanggal(c.tanggal)}</td><td class="txt">${c.noBukti}</td><td class="txt">${p?p.noBukti+' — '+kopSumberLabel(p.tipe):'(dihapus)'}</td>
-    <td class="txt">${akunLabel(c.akunKasBankId)}</td><td>${formatRupiah(c.jumlah)}</td>
+    <td class="txt">${akunTampil}</td><td>${formatRupiah(c.jumlah)}</td>
     <td class="txt"><button type="button" class="btn-danger" onclick="hapusPotongan('${c.id}')">Hapus</button></td></tr>`; }).join('');
 }
 function hapusPotongan(id){ const c=kopCicilanList.find(x=>x.id===id); if(!c) return; const p=kopPinjamanList.find(x=>x.id===c.pinjamanId); if(p && p.tipe==='penjualan'){ alert('Potongan dari Pinjaman/Piutang Koperasi hasil Penjualan tidak bisa dihapus langsung dari sini. Hapus melalui menu 4. Penjualan > Penerimaan Penjualan (Pelunasan Piutang).'); return; } if(cekTerkunciDanTolak(c.tanggal)) return; if(!confirm('Hapus catatan potongan ini?')) return; kopCicilanList=kopCicilanList.filter(x=>x.id!==id); save.kopCicilan(); renderDipotongMasa(); renderKopPinjaman(); }
