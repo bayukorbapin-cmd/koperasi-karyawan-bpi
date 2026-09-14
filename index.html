@@ -893,20 +893,14 @@ tfoot td.txt{text-align:left;}
           <button type="submit" class="btn-primary">+ Simpan Penerimaan</button>
         </div>
       </form>
-      <div class="table-scroll"><table><thead><tr><th>No. Bukti</th><th>Tanggal</th><th>Pelanggan</th><th>Invoice</th><th>Metode/Akun</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+      <div class="form-row" style="margin-top:4px;">
+        <div class="field"><label>Tanggal Posting Cicilan</label><input type="date" id="arCicilanTanggal"></div>
+        <div class="field"><label>Sub-akun Piutang (misal: Piutang Penj Kop Toko)</label><select id="arCicilanAkunPiutangKop" style="min-width:220px;"></select></div>
+      </div>
+      <p class="hint" style="margin-top:-6px;">Khusus baris Metode "Piutang Anggota Koperasi": jumlah cicilan (jangka waktu) ditentukan manual saat pertama kali diposting ke Piutang Koperasi; potongan per bulan mengikuti otomatis dan terkunci, tinggal klik <b>Posting</b> tiap bulan. <b>Tidak bisa diposting 2x dalam bulan (masa) yang sama</b> — masa mengikuti Tanggal Posting Cicilan di atas.</p>
+      <div class="table-scroll"><table><thead><tr><th>No. Bukti</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Anggota/Karyawan (NIP — Nama)</th><th class="txt">Invoice</th><th class="txt">Metode/Akun</th><th>Jumlah</th><th>Cicilan</th><th>Potongan per Bulan</th><th>Aksi</th></tr></thead>
       <tbody id="tbodyARReceipt"></tbody></table></div>
       <div class="empty" id="emptyARReceipt" style="display:none;">Belum ada penerimaan.</div>
-    </div>
-    <div class="card">
-      <h3 style="margin-top:0;">Posting Cicilan Piutang Penjualan Koperasi</h3>
-      <p class="hint" style="margin-top:-6px;">Daftar pinjaman Piutang Koperasi hasil <b>Posting</b> invoice penjualan di atas yang masih berjalan. Jumlah cicilan (jangka waktu) ditentukan manual saat pertama kali diposting; potongan per bulan mengikuti otomatis dan terkunci — tinggal klik <b>Posting</b> tiap bulan. <b>Tidak bisa diposting 2x dalam bulan (masa) yang sama</b>; masa mengikuti Tanggal Posting di bawah.</p>
-      <div class="form-row">
-        <div class="field"><label>Tanggal Posting</label><input type="date" id="arCicilanTanggal"></div>
-        <div class="field"><label>Akun Kas/Bank Penerima</label><select id="arCicilanAkunKasBank" style="min-width:200px;"></select></div>
-      </div>
-      <div class="table-scroll"><table><thead><tr><th>No. Bukti</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Anggota/Karyawan (NIP — Nama)</th><th class="txt">Invoice</th><th class="txt">Metode/Akun</th><th>Jumlah</th><th>Cicilan</th><th>Potongan per Bulan</th><th>Aksi</th></tr></thead>
-      <tbody id="tbodyARCicilanKoperasi"></tbody></table></div>
-      <div class="empty" id="emptyARCicilanKoperasi" style="display:none;">Belum ada pinjaman Piutang Penjualan Koperasi yang berjalan.</div>
     </div>
     <div class="card">
       <h3>Histori Penerimaan Sebelumnya dengan Pelanggan yang Sama</h3>
@@ -3924,13 +3918,13 @@ function populateAkunSelects(){
   const kasBankOpts = akunListSorted.filter(a=>a.isKasBank).map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   const bebanOpts = akunListSorted.filter(a=>baseTipe(a.tipe)==='Beban').map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   ['kbpAkunLawan','bAkunBeban','lapBBAkun','sPphAkun','pPphAkun','cfAkunLawan'].forEach(id=>{ const sel=document.getElementById(id); if(!sel) return; const prev=sel.value; sel.innerHTML = id==='bAkunBeban'? (bebanOpts||genOpts) : genOpts; if([...sel.options].some(o=>o.value===prev)) sel.value=prev; });
-  ['kbpAkunKasBank','kbnAkunKasBank','kbxAsal','kbxTujuan','lapKBAkun','arAkunKasBank','arCicilanAkunKasBank','apAkunKasBank','bAkunBayar','dmAkunKasBank','spPokokAkunKasBank','spWajibAkunKasBank','spSukarelaAkunKasBank','spDanaCadanganAkunKasBank','spWajibPostingAkunKasBank','spSukarelaPostingAkunKasBank'].forEach(id=>{
+  ['kbpAkunKasBank','kbnAkunKasBank','kbxAsal','kbxTujuan','lapKBAkun','arAkunKasBank','apAkunKasBank','bAkunBayar','dmAkunKasBank','spPokokAkunKasBank','spWajibAkunKasBank','spSukarelaAkunKasBank','spDanaCadanganAkunKasBank','spWajibPostingAkunKasBank','spSukarelaPostingAkunKasBank'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value; sel.innerHTML = kasBankOpts || '<option value="">Belum ada akun Kas/Bank</option>';
     if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
   });
   document.getElementById('kbnAkunLawan').innerHTML = genOpts;
   const piutangKopOpts = akunListSorted.filter(a=>a.isPiutangKop).map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
-  ['kbpAkunPiutangKop','arAkunPiutangKop','apAkunPiutangKop'].forEach(id=>{
+  ['kbpAkunPiutangKop','arAkunPiutangKop','apAkunPiutangKop','arCicilanAkunPiutangKop'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value;
     sel.innerHTML = piutangKopOpts || '<option value="">Belum ada sub-akun piutang koperasi</option>';
     if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
@@ -5721,66 +5715,67 @@ function postingARKoperasi(penjualanId){
 /* Tabel "Posting Cicilan Piutang Penjualan Koperasi": daftar pinjaman koperasi (tipe='penjualan') yang
    masih berjalan, dengan tombol Posting untuk mencatat potongan/cicilan bulan berjalan. Jumlah cicilan
    (jangka waktu) sudah ditentukan manual sewaktu invoice pertama kali diposting ke Piutang Koperasi
-   (lihat postingARKoperasi/form di atas); potongan per bulan mengikuti otomatis dan tidak diubah lagi
-   di sini. Satu pinjaman hanya boleh diposting sekali untuk masa (bulan) yang sama — masa mengikuti
-   Tanggal Posting yang dipilih. */
-function renderARCicilanKoperasi(){
-  if(!document.getElementById('arCicilanTanggal').value) document.getElementById('arCicilanTanggal').valueAsDate = new Date();
-  const tbody=document.getElementById('tbodyARCicilanKoperasi'), empty=document.getElementById('emptyARCicilanKoperasi');
-  const masaAktif = masaFromTanggal(document.getElementById('arCicilanTanggal').value || todayIso());
-  const rows = kopPinjamanList.filter(p=>p.tipe==='penjualan').filter(p=>kopPinjamanSisa(p)>0.5).sort(byTanggalSeq);
-  if(!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
-  tbody.innerHTML = rows.map(p=>{
-    const ar = arReceiptList.find(x=>x.id===p.sourceRefId);
-    const inv = ar ? penjualanList.find(x=>x.id===ar.penjualanId) : null;
-    const c = ar ? getCustomer(ar.customerId) : null;
-    const a = getKopAnggota(p.anggotaId);
-    const sudahDiposting = kopCicilanList.some(x=>x.pinjamanId===p.id && masaFromTanggal(x.tanggal)===masaAktif);
-    const aksi = sudahDiposting
-      ? '<span class="badge badge-lunas">Sudah diposting bulan ini</span>'
-      : `<button type="button" class="btn-primary" onclick="postingCicilanPenjualanKoperasi('${p.id}')">Posting</button>`;
-    return `<tr><td class="txt">${ar?ar.noBukti:'-'}</td><td class="txt">${formatTanggal(p.tanggal)}</td>
-    <td class="txt">${c?c.kode+' — '+c.nama:'-'}</td><td class="txt">${a?a.nip+'-'+a.nama:'(dihapus)'}</td>
-    <td class="txt">${inv?inv.noInvoice:'-'}</td><td class="txt">${akunLabel(p.akunPiutangId)}</td>
-    <td>${formatRupiah(p.jumlah)}</td><td>${p.jangkaWaktu}</td><td>${formatRupiah(p.cicilanPerBulan)}</td>
-    <td class="txt">${aksi}</td></tr>`; }).join('');
-}
-document.getElementById('arCicilanTanggal').addEventListener('change', renderARCicilanKoperasi);
+   (lihat postingARKoperasi/form di atas). Jumlah cicilan (jangka waktu) ditentukan manual sekali saat
+   invoice pertama kali diposting ke Piutang Koperasi; potongan per bulan mengikuti otomatis dan tidak
+   diubah lagi di sini. Satu pinjaman hanya boleh diposting sekali untuk masa (bulan) yang sama — masa
+   mengikuti Tanggal Posting Cicilan yang dipilih. Debit-nya memakai Sub-akun Piutang (bukan Kas/Bank),
+   karena penagihan koperasi ini masih berupa pemindahan piutang, bukan penerimaan kas langsung. */
 function postingCicilanPenjualanKoperasi(pinjamanId){
   const tanggal = document.getElementById('arCicilanTanggal').value;
-  const akunKasBankId = document.getElementById('arCicilanAkunKasBank').value;
-  if(!tanggal || !akunKasBankId){ alert('Lengkapi Tanggal Posting dan Akun Kas/Bank Penerima terlebih dahulu.'); return; }
+  const akunPiutangKopId = document.getElementById('arCicilanAkunPiutangKop').value;
+  if(!tanggal || !akunPiutangKopId){ alert('Lengkapi Tanggal Posting Cicilan dan Sub-akun Piutang terlebih dahulu.'); return; }
   if(cekTerkunciDanTolak(tanggal)) return;
   const p = kopPinjamanList.find(x=>x.id===pinjamanId);
-  if(!p){ alert('Data pinjaman tidak ditemukan (mungkin sudah dihapus).'); renderARCicilanKoperasi(); return; }
+  if(!p){ alert('Data pinjaman tidak ditemukan (mungkin sudah dihapus).'); renderARReceipt(); return; }
   const sisa = kopPinjamanSisa(p);
-  if(sisa <= 0.5){ alert('Pinjaman ini sudah lunas.'); renderARCicilanKoperasi(); return; }
+  if(sisa <= 0.5){ alert('Pinjaman ini sudah lunas.'); renderARReceipt(); return; }
   const masa = masaFromTanggal(tanggal);
   if(kopCicilanList.some(x=>x.pinjamanId===p.id && masaFromTanggal(x.tanggal)===masa)){
     alert('Pinjaman ini sudah diposting untuk bulan (masa) yang sama. Tidak bisa posting 2x dalam bulan yang sama.');
-    renderARCicilanKoperasi(); return;
+    renderARReceipt(); return;
   }
   const jumlah = Math.min(p.cicilanPerBulan, sisa);
-  kopCicilanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('potonganKoperasi'), tanggal, anggotaId:p.anggotaId, pinjamanId:p.id, jumlah, akunKasBankId, keterangan:'Posting cicilan piutang penjualan koperasi — masa '+masaLabel(masa)});
+  kopCicilanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('potonganKoperasi'), tanggal, anggotaId:p.anggotaId, pinjamanId:p.id, jumlah, akunKasBankId:akunPiutangKopId, keterangan:'Posting cicilan piutang penjualan koperasi — masa '+masaLabel(masa)});
   save.kopCicilan();
-  renderARCicilanKoperasi(); renderKopPinjaman();
+  renderARReceipt(); renderKopPinjaman();
   alert(`Berhasil diposting cicilan sebesar ${formatRupiah(jumlah)} untuk masa ${masaLabel(masa)}.`);
 }
 function renderARReceipt(){
   populateCustomerSelects(); populateAkunSelects(); populateKopAnggotaSelects();
   populateInvoiceBelumLunasSelect('arInvoice','arCustomer', penjualanList, arOutstanding, 'S');
   renderARKoperasiBelumLunas();
-  renderARCicilanKoperasi();
+  if(!document.getElementById('arCicilanTanggal').value) document.getElementById('arCicilanTanggal').valueAsDate = new Date();
+  const masaAktif = masaFromTanggal(document.getElementById('arCicilanTanggal').value || todayIso());
   renderARHistori(); updateArUangMukaInfo();
   const tbody=document.getElementById('tbodyARReceipt'), empty=document.getElementById('emptyARReceipt');
   if(!arReceiptList.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
   const sorted = arReceiptList.slice().sort((a,b)=>byTanggalSeq(b,a));
   tbody.innerHTML = sorted.map(r=>{ const c=getCustomer(r.customerId); const inv=penjualanList.find(i=>i.id===r.penjualanId);
     const metode = r.metode==='koperasi' ? akunLabel(r.akunPiutangId)+' <span class="badge">Koperasi</span>' : r.metode==='uangmuka' ? 'Uang Muka Pelanggan <span class="badge">Uang Muka</span>' : akunLabel(r.akunKasBankId);
+    const p = r.metode==='koperasi' ? kopPinjamanList.find(x=>x.sourceRefId===r.id) : null;
+    const a = p ? getKopAnggota(p.anggotaId) : null;
+    const anggotaCell = p ? (a ? a.nip+'-'+a.nama : '(dihapus)') : '-';
+    const cicilanCell = p ? p.jangkaWaktu : '-';
+    const potonganCell = p ? formatRupiah(p.cicilanPerBulan) : '-';
+    let aksi = `<button type="button" class="btn-danger" onclick="hapusARReceipt('${r.id}')">Hapus</button>`;
+    if(p){
+      const sisa = kopPinjamanSisa(p);
+      if(sisa <= 0.5){
+        aksi = '<span class="badge badge-lunas">LUNAS</span> ' + aksi;
+      } else {
+        const sudahDiposting = kopCicilanList.some(x=>x.pinjamanId===p.id && masaFromTanggal(x.tanggal)===masaAktif);
+        aksi = (sudahDiposting
+          ? '<span class="badge badge-lunas">Sudah diposting bulan ini</span>'
+          : `<button type="button" class="btn-primary" onclick="postingCicilanPenjualanKoperasi('${p.id}')">Posting</button>`) + ' ' + aksi;
+      }
+    }
     return `<tr><td class="txt">${r.noBukti}</td><td class="txt">${formatTanggal(r.tanggal)}</td><td class="txt">${c?c.kode+' — '+c.nama:'-'}</td>
+    <td class="txt">${anggotaCell}</td>
     <td class="txt">${inv?inv.noInvoice:'(dihapus)'}</td><td class="txt">${metode}</td><td>${formatRupiah(r.jumlah)}</td>
-    <td class="txt"><button type="button" class="btn-danger" onclick="hapusARReceipt('${r.id}')">Hapus</button></td></tr>`; }).join('');
+    <td>${cicilanCell}</td><td>${potonganCell}</td>
+    <td class="txt">${aksi}</td></tr>`; }).join('');
 }
+document.getElementById('arCicilanTanggal').addEventListener('change', renderARReceipt);
 document.getElementById('btnRefreshARReceipt').addEventListener('click', ()=>{ renderARReceipt(); applyAutoKoperasiLink(); });
 document.getElementById('formARReceipt').addEventListener('submit', e=>{
   e.preventDefault();
