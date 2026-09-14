@@ -1649,7 +1649,7 @@ tfoot td.txt{text-align:left;}
       <div class="form-row">
         <div class="field"><label>Pilih Anggota/Karyawan</label><select id="dmAnggota" style="min-width:260px;"></select></div>
         <div class="field"><label>Tanggal Potong</label><input type="date" id="dmTanggal"></div>
-        <div class="field"><label>Akun Kas/Bank Penerima</label><select id="dmAkunKasBank" style="min-width:200px;"></select></div>
+        <div class="field"><label>Sub-akun Piutang Koperasi</label><select id="dmAkunPiutangKop" style="min-width:220px;"></select></div>
       </div>
       <div class="table-scroll"><table>
         <thead><tr><th>Sumber</th><th>No. Bukti</th><th>Sisa Pinjaman</th><th>Cicilan Direkomendasikan</th><th>Jumlah Dipotong</th><th>Aksi</th></tr></thead>
@@ -3909,13 +3909,13 @@ function populateAkunSelects(){
   const kasBankOpts = akunListSorted.filter(a=>a.isKasBank).map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   const bebanOpts = akunListSorted.filter(a=>baseTipe(a.tipe)==='Beban').map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   ['kbpAkunLawan','bAkunBeban','lapBBAkun','sPphAkun','pPphAkun','cfAkunLawan'].forEach(id=>{ const sel=document.getElementById(id); if(!sel) return; const prev=sel.value; sel.innerHTML = id==='bAkunBeban'? (bebanOpts||genOpts) : genOpts; if([...sel.options].some(o=>o.value===prev)) sel.value=prev; });
-  ['kbpAkunKasBank','kbnAkunKasBank','kbxAsal','kbxTujuan','lapKBAkun','arAkunKasBank','apAkunKasBank','bAkunBayar','dmAkunKasBank','spPokokAkunKasBank','spWajibAkunKasBank','spSukarelaAkunKasBank','spDanaCadanganAkunKasBank','spWajibPostingAkunKasBank','spSukarelaPostingAkunKasBank'].forEach(id=>{
+  ['kbpAkunKasBank','kbnAkunKasBank','kbxAsal','kbxTujuan','lapKBAkun','arAkunKasBank','apAkunKasBank','bAkunBayar','spPokokAkunKasBank','spWajibAkunKasBank','spSukarelaAkunKasBank','spDanaCadanganAkunKasBank','spWajibPostingAkunKasBank','spSukarelaPostingAkunKasBank'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value; sel.innerHTML = kasBankOpts || '<option value="">Belum ada akun Kas/Bank</option>';
     if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
   });
   document.getElementById('kbnAkunLawan').innerHTML = genOpts;
   const piutangKopOpts = akunListSorted.filter(a=>a.isPiutangKop).map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
-  ['kbpAkunPiutangKop','arAkunPiutangKop','apAkunPiutangKop'].forEach(id=>{
+  ['kbpAkunPiutangKop','arAkunPiutangKop','apAkunPiutangKop','dmAkunPiutangKop'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel) return; const prev=sel.value;
     sel.innerHTML = piutangKopOpts || '<option value="">Belum ada sub-akun piutang koperasi</option>';
     if([...sel.options].some(o=>o.value===prev)) sel.value=prev;
@@ -4679,6 +4679,7 @@ function buildJurnal(){
   });
   kopCicilanList.slice().sort(byTanggalSeq).forEach(c=>{
     if(c.viaPayroll) return; // journal already covered by the payroll posting itself
+    if(c.viaPenerimaanPenjualan) return; // journal already covered by transaksi Penerimaan Penjualan (Piutang Usaha → Piutang Koperasi) — jangan dijurnal ulang di sini, supaya tidak double jurnal
     const pinjaman = kopPinjamanList.find(x=>x.id===c.pinjamanId);
     const akunPiutang = (pinjaman&&pinjaman.akunPiutangId) || role('piutangKoperasi');
     lines.push({tanggal:c.tanggal, ref:c.noBukti, keterangan:'Potongan cicilan pinjaman koperasi', akunId:c.akunKasBankId, debit:c.jumlah, kredit:0, anggotaId:c.anggotaId});
@@ -5761,8 +5762,11 @@ document.getElementById('formARReceipt').addEventListener('submit', e=>{
     }
     arReceiptList.push(ar);
     /* Jumlah Bayar periode ini otomatis langsung tercatat sebagai potongan cicilan (Dipotong Masa) —
-       tidak perlu lagi dicatat manual di menu 11. Koperasi > Dipotong Masa. */
-    const cicilanEntry = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('potonganKoperasi'), tanggal, anggotaId, pinjamanId:pinjaman.id, jumlah, akunKasBankId:null, keterangan:'Otomatis dari Penerimaan Penjualan '+ar.noBukti};
+       tidak perlu lagi dicatat manual di menu 11. Koperasi > Dipotong Masa. viaPenerimaanPenjualan:true
+       supaya buildJurnal() TIDAK membuat jurnal kedua untuk baris ini — jurnalnya sudah dibuat oleh
+       transaksi Penerimaan Penjualan ini sendiri (Piutang Usaha → Piutang Koperasi), jadi kalau
+       potongan ini ikut dijurnal lagi akan jadi jurnal ganda (double jurnal). */
+    const cicilanEntry = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('potonganKoperasi'), tanggal, anggotaId, pinjamanId:pinjaman.id, jumlah, akunKasBankId:null, viaPenerimaanPenjualan:true, sourceArReceiptId:ar.id, keterangan:'Otomatis dari Penerimaan Penjualan '+ar.noBukti};
     kopCicilanList.push(cicilanEntry);
     ar.kopCicilanId = cicilanEntry.id;
     save.arReceipt(); save.kopPinjaman(); save.kopCicilan();
@@ -8255,9 +8259,14 @@ function renderDipotongMasa(){
 }
 function catatPotongan(pinjamanId){
   const p = kopPinjamanList.find(x=>x.id===pinjamanId); if(!p) return;
-  const tanggal = document.getElementById('dmTanggal').value; const akunKasBankId = document.getElementById('dmAkunKasBank').value;
+  const tanggal = document.getElementById('dmTanggal').value;
+  /* Potongan cicilan lewat Dipotong Masa (potongan gaji/payroll) TIDAK menerima kas langsung —
+     ini cuma perpindahan saldo Piutang Koperasi (dari pinjaman berjalan ke sub-akun Piutang Koperasi
+     yang dipilih di sini), bukan penerimaan Kas/Bank sungguhan. Penerimaan kas beneran dari pelunasan
+     dipercepat tetap lewat menu Kas & Bank > Penerimaan. */
+  const akunKasBankId = document.getElementById('dmAkunPiutangKop').value;
   const jumlah = parseFloat(document.getElementById('dm_input_'+pinjamanId).value||0);
-  if(!tanggal||!akunKasBankId||!jumlah||jumlah<=0){ alert('Lengkapi tanggal, akun kas/bank, dan jumlah potongan.'); return; }
+  if(!tanggal||!akunKasBankId||!jumlah||jumlah<=0){ alert('Lengkapi tanggal, sub-akun Piutang Koperasi, dan jumlah potongan.'); return; }
   if(cekTerkunciDanTolak(tanggal)) return;
   const sisa = kopPinjamanSisa(p);
   if(jumlah > sisa+0.5){ alert(`Jumlah potongan melebihi sisa pinjaman (${formatRupiah(sisa)}).`); return; }
