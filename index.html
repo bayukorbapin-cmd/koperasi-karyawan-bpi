@@ -871,7 +871,7 @@ tfoot td.txt{text-align:left;}
     <p class="page-sub" style="margin-top:-6px;">Kalau baru menambah/mengubah invoice, pelanggan, atau data anggota koperasi di menu lain dan daftarnya belum muncul di sini, klik <b>Refresh Data</b>.</p>
     <div class="card">
       <h3 style="margin-top:0;">Invoice Piutang Koperasi Belum Lunas</h3>
-      <p class="hint" style="margin-top:-6px;">Klik <b>Posting</b> untuk menagihkan sisa piutang invoice ini ke Piutang Anggota Koperasi — boleh sebagian (dicicil/ditagih bertahap) atau langsung sisa penuh, lalu tentukan Jangka Waktu cicilan anggotanya. Kalau mau bayar lewat Kas/Bank biasa, gunakan form di bawah.</p>
+      <p class="hint" style="margin-top:-6px;">Menampilkan semua invoice Piutang Koperasi yang belum lunas. Pilih <b>Pelanggan</b> di form di bawah untuk mempersempit daftar ke pelanggan tersebut saja. Klik <b>Posting</b> untuk menagihkan sisa piutang invoice ini ke Piutang Anggota Koperasi — boleh sebagian (dicicil/ditagih bertahap) atau langsung sisa penuh, lalu tentukan Jangka Waktu cicilan anggotanya.</p>
       <div class="table-scroll"><table><thead><tr><th class="txt">No. Invoice</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Akun Piutang</th><th>Sisa Piutang</th><th>Aksi</th></tr></thead>
       <tbody id="tbodyARKoperasiBelumLunas"></tbody></table></div>
       <div class="empty" id="emptyARKoperasiBelumLunas" style="display:none;">Tidak ada invoice Piutang Koperasi yang belum lunas.</div>
@@ -5601,7 +5601,7 @@ function populateInvoiceBelumLunasSelect(selId, custSelId, listSource, outstandi
 }
 document.getElementById('arCustomer').addEventListener('change', ()=>{
   populateInvoiceBelumLunasSelect('arInvoice','arCustomer', penjualanList, arOutstanding, 'S');
-  renderARHistori(); updateArUangMukaInfo();
+  renderARHistori(); updateArUangMukaInfo(); renderARKoperasiBelumLunas();
   applyAutoKoperasiLink();
 });
 document.getElementById('arInvoice').addEventListener('change', applyAutoKoperasiLink);
@@ -5663,11 +5663,15 @@ function renderARHistori(){
 }
 function renderARKoperasiBelumLunas(){
   const tbody=document.getElementById('tbodyARKoperasiBelumLunas'), empty=document.getElementById('emptyARKoperasiBelumLunas');
+  const customerId = document.getElementById('arCustomer').value;
   const rows = penjualanList.filter(inv=>{
     const akun = inv.piutangAkunId ? getAkun(inv.piutangAkunId) : null;
-    return akun && akun.isPiutangKop && arOutstanding(inv) > 0.5;
+    if(!(akun && akun.isPiutangKop && arOutstanding(inv) > 0.5)) return false;
+    return !customerId || inv.customerId===customerId;
   }).sort(byTanggalSeq);
-  if(!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; } empty.style.display='none';
+  if(!rows.length){ tbody.innerHTML=''; empty.style.display='block';
+    empty.textContent = customerId ? 'Pelanggan ini tidak memiliki invoice Piutang Koperasi yang belum lunas.' : 'Tidak ada invoice Piutang Koperasi yang belum lunas.';
+    return; } empty.style.display='none';
   tbody.innerHTML = rows.map(inv=>{ const c=getCustomer(inv.customerId);
     return `<tr><td class="txt">${inv.noInvoice}</td><td class="txt">${formatTanggal(inv.tanggal)}</td>
     <td class="txt">${c?c.kode+' — '+c.nama:'-'}</td><td class="txt">${akunLabel(inv.piutangAkunId)}</td>
