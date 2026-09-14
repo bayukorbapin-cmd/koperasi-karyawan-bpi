@@ -871,7 +871,7 @@ tfoot td.txt{text-align:left;}
     <p class="page-sub" style="margin-top:-6px;">Kalau baru menambah/mengubah invoice, pelanggan, atau data anggota koperasi di menu lain dan daftarnya belum muncul di sini, klik <b>Refresh Data</b>.</p>
     <div class="card">
       <h3 style="margin-top:0;">Invoice Piutang Koperasi Belum Lunas</h3>
-      <p class="hint" style="margin-top:-6px;">Klik <b>Posting</b> untuk langsung mencatat pelunasan penuh invoice ini sebagai Piutang Anggota Koperasi (dicicil anggota sesuai Jangka Waktu yang diisi). Kalau mau bayar sebagian atau lewat Kas/Bank biasa, gunakan form di bawah.</p>
+      <p class="hint" style="margin-top:-6px;">Klik <b>Posting</b> untuk menagihkan sisa piutang invoice ini ke Piutang Anggota Koperasi — boleh sebagian (dicicil/ditagih bertahap) atau langsung sisa penuh, lalu tentukan Jangka Waktu cicilan anggotanya. Kalau mau bayar lewat Kas/Bank biasa, gunakan form di bawah.</p>
       <div class="table-scroll"><table><thead><tr><th class="txt">No. Invoice</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Akun Piutang</th><th>Sisa Piutang</th><th>Aksi</th></tr></thead>
       <tbody id="tbodyARKoperasiBelumLunas"></tbody></table></div>
       <div class="empty" id="emptyARKoperasiBelumLunas" style="display:none;">Tidak ada invoice Piutang Koperasi yang belum lunas.</div>
@@ -5683,14 +5683,18 @@ function postingARKoperasi(penjualanId){
   const anggotaId = inv.anggotaId || (c && c.anggotaId) || null;
   if(!anggotaId){ alert('Invoice ini belum terhubung ke Anggota/Karyawan Koperasi. Silakan pilih Pelanggan & Invoice ini secara manual di form di bawah, lalu pilih anggotanya sebelum menyimpan.'); return; }
   const akunPiutangId = inv.piutangAkunId;
-  const jwInput = prompt(`Posting pelunasan penuh invoice ${inv.noInvoice} sebesar ${formatRupiah(sisa)} sebagai Piutang Anggota Koperasi.\n\nJangka Waktu cicilan (bulan)?`, '12');
+  const jmlInput = prompt(`Invoice ${inv.noInvoice} — sisa piutang ${formatRupiah(sisa)}.\n\nMau tagih ke Piutang Koperasi berapa? (Boleh sebagian kalau ditagih bertahap/dicicil, atau langsung sisa penuh)`, String(Math.round(sisa)));
+  if(jmlInput===null) return;
+  const jumlah = Math.round(parseRibuan(jmlInput));
+  if(!jumlah || jumlah<1){ alert('Jumlah tidak valid.'); return; }
+  if(jumlah > sisa + 0.5){ alert(`Jumlah tidak boleh melebihi sisa piutang (${formatRupiah(sisa)}).`); return; }
+  const jwInput = prompt(`Posting ${formatRupiah(jumlah)} dari invoice ${inv.noInvoice} sebagai Piutang Anggota Koperasi.\n\nJangka Waktu cicilan (bulan)?`, '12');
   if(jwInput===null) return;
   const jangkaWaktu = parseInt(jwInput,10);
   if(!jangkaWaktu || jangkaWaktu<1){ alert('Jangka Waktu tidak valid.'); return; }
   const tanggal = todayIso();
   if(cekTerkunciDanTolak(tanggal)) return;
-  const jumlah = Math.round(sisa);
-  const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId:inv.customerId, penjualanId:inv.id, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan:'Posting pelunasan piutang koperasi'};
+  const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId:inv.customerId, penjualanId:inv.id, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan:'Posting piutang ke Piutang Koperasi'};
   arReceiptList.push(ar); save.arReceipt();
   const invTotal = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, invTotal.total - invTotal.pph);
   const dpp = Math.round(invTotal.netto * (jumlah/dasarBayar)); const ppn = jumlah - dpp;
