@@ -737,7 +737,7 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Termin (hari, opsional)</label><input type="number" id="sTermin" min="0" placeholder="mis. 30" style="min-width:110px;"></div>
           <div class="field"><label>Keterangan</label><input type="text" id="sKeterangan" style="min-width:160px;"></div>
         </div>
-        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini). Kalau Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi, field <b>Nama Anggota/Karyawan</b> dan <b>Cicilan (bulan)</b> akan muncul (opsional) — kalau diisi, nanti di menu <b>Penerimaan Penjualan (Pelunasan Piutang)</b>, Metode Penerimaan, Nama Anggota, Sub-akun Piutang, dan Jangka Waktu (bulan) akan otomatis terisi mengikuti invoice ini, dan Jumlah Bayar otomatis terisi sebesar seluruh sisa tagihan (langsung Lunas &amp; berpindah jadi Piutang/Pinjaman Koperasi, terjadwal per bulan sesuai Cicilan — dicatat bertahap tiap periode di menu <b>11. Koperasi &gt; Dipotong Masa</b>). Kalau mau menghapus transaksi ini, hapus dari menu Penerimaan Penjualan, bukan langsung dari menu Koperasi.</p>
+        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini). Kalau Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi, field <b>Nama Anggota/Karyawan</b> dan <b>Cicilan (bulan)</b> akan muncul (opsional) — kalau diisi, nanti di menu <b>Penerimaan Penjualan (Pelunasan Piutang)</b>, Metode Penerimaan, Nama Anggota, Sub-akun Piutang, dan Jangka Waktu (bulan) akan otomatis terisi mengikuti invoice ini, dan Jumlah Bayar otomatis terisi sebesar satu kali angsuran (Total Invoice ÷ Cicilan). Ulangi transaksi Penerimaan Penjualan itu setiap periode/bulan sampai invoice Lunas — tiap kali disimpan, otomatis juga tercatat sebagai potongan cicilan di menu <b>11. Koperasi &gt; Dipotong Masa</b>, tidak perlu diisi manual lagi di sana. Kalau mau menghapus salah satu transaksi periode, hapus dari menu Penerimaan Penjualan, bukan langsung dari menu Koperasi.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Jenis</th><th>Nama Barang/Jasa</th><th>Jumlah</th><th>Harga</th><th>Total Harga</th><th>Aksi</th></tr></thead>
           <tbody id="sItemsWrap"></tbody>
@@ -5630,10 +5630,16 @@ function applyAutoKoperasiLink(){
   const cicilan = (inv && inv.cicilan) ? inv.cicilan : null;
   const locked = !!(anggotaId && cicilan);
   jangkaField.readOnly = locked;
-  jumlahField.readOnly = locked;
-  if(locked){
+  /* Jumlah Bayar TIDAK dikunci lagi — ini cuma rekomendasi angsuran per periode, boleh diubah manual
+     (mis. untuk periode terakhir yang sisanya tidak genap). */
+  jumlahField.readOnly = false;
+  if(locked && inv){
     jangkaField.value = cicilan;
-    jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)));
+    const t = invoicePenjualanTotal(inv);
+    const dasarBayar = Math.max(1, t.total - t.pph);
+    const angsuranTetap = Math.round(dasarBayar / cicilan);
+    const sisa = arOutstanding(inv);
+    jumlahField.value = formatRibuan(Math.round(Math.min(angsuranTetap, sisa)));
   } else if(inv && (!jumlahField.value || parseRibuan(jumlahField.value)===0)){
     jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)));
   }
@@ -5660,9 +5666,11 @@ function updateArCicilanInfo(){
   const anggotaId = (inv && inv.anggotaId) ? inv.anggotaId : ((c && c.anggotaId) ? c.anggotaId : null);
   const cicilan = (inv && inv.cicilan) ? inv.cicilan : null;
   if(document.getElementById('arMetode').value==='koperasi' && inv && anggotaId && cicilan){
-    const sisa = arOutstanding(inv); const angsuran = Math.round(sisa/cicilan);
+    const sisa = arOutstanding(inv);
+    const t = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, t.total - t.pph);
+    const angsuranTetap = Math.round(dasarBayar/cicilan);
     box.style.display='flex';
-    box.innerHTML = `Tagihan Invoice ${inv.noInvoice}: <b>${formatRupiah(sisa)}</b> — seluruhnya jadi Pinjaman/Piutang Koperasi, dicicil <b>${cicilan}x</b> — angsuran per bulan: <b>${formatRupiah(angsuran)}</b> (dicatat bertahap di menu 11. Koperasi &gt; Dipotong Masa setiap periode)`;
+    box.innerHTML = `Sisa Tagihan Invoice ${inv.noInvoice}: <b>${formatRupiah(sisa)}</b> — angsuran per periode (Total Invoice ÷ ${cicilan} cicilan): <b>${formatRupiah(angsuranTetap)}</b>. Jumlah Bayar di atas otomatis mengikuti angsuran ini (dibatasi maksimum sisa tagihan) dan langsung tercatat otomatis sebagai potongan di menu 11. Koperasi &gt; Dipotong Masa — tidak perlu diisi manual di sana. Ulangi transaksi ini setiap periode sampai invoice Lunas.`;
   } else {
     box.style.display='none'; box.innerHTML='';
   }
@@ -5712,6 +5720,17 @@ function renderARReceipt(){
     <td class="txt">${inv?inv.noInvoice:'(dihapus)'}</td><td class="txt">${metode}</td><td>${formatRupiah(r.jumlah)}</td>
     <td class="txt"><button type="button" class="btn-danger" onclick="hapusARReceipt('${r.id}')">Hapus</button></td></tr>`; }).join('');
 }
+/* Cari Pinjaman/Piutang Koperasi yang sudah pernah dibuat untuk invoice ini (dari penerimaan koperasi
+   sebelumnya di invoice yang sama) — kalau ketemu, penerimaan periode berikutnya tinggal menambah
+   potongan ke pinjaman yang sama, tidak membuat pinjaman baru. */
+function findKopPinjamanForInvoice(penjualanId){
+  const priorReceipts = arReceiptList.filter(r=>r.penjualanId===penjualanId && r.metode==='koperasi');
+  for(const pr of priorReceipts){
+    const p = kopPinjamanList.find(x=>x.sourceRefId===pr.id);
+    if(p) return p;
+  }
+  return null;
+}
 document.getElementById('btnRefreshARReceipt').addEventListener('click', ()=>{ renderARReceipt(); applyAutoKoperasiLink(); });
 document.getElementById('formARReceipt').addEventListener('submit', e=>{
   e.preventDefault();
@@ -5728,12 +5747,25 @@ document.getElementById('formARReceipt').addEventListener('submit', e=>{
     const akunPiutangId = document.getElementById('arAkunPiutangKop').value || role('piutangKoperasi');
     if(!anggotaId){ alert('Pilih anggota/karyawan.'); return; }
     if(!akunPiutangId){ alert('Pilih sub-akun Piutang Koperasi, atau atur Akun Penting di Pengaturan.'); return; }
-    const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId, penjualanId, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan};
-    arReceiptList.push(ar); save.arReceipt();
-    const invTotal = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, invTotal.total - invTotal.pph);
-    const dpp = Math.round(invTotal.netto * (jumlah/dasarBayar)); const ppn = jumlah - dpp;
-    kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ar.id, akunPiutangId, dpp, ppn, uangMuka:0, biayaAdmin:0});
-    save.kopPinjaman();
+    const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId, penjualanId, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan, kopCicilanId:null};
+    /* Kalau invoice ini sudah pernah dibuatkan Pinjaman Koperasi (dari penerimaan koperasi periode
+       sebelumnya), pakai pinjaman yang sama — jangan buat pinjaman baru tiap periode. Kalau ini
+       penerimaan koperasi pertama untuk invoice ini, baru buat 1 pinjaman dengan jumlah = seluruh
+       sisa tagihan saat ini, dijadwalkan sesuai Jangka Waktu/Cicilan. */
+    let pinjaman = findKopPinjamanForInvoice(penjualanId);
+    if(!pinjaman){
+      const invTotal = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, invTotal.total - invTotal.pph);
+      const dpp = Math.round(invTotal.netto * (sisa/dasarBayar)); const ppn = sisa - dpp;
+      pinjaman = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah:sisa, jangkaWaktu, cicilanPerBulan:Math.round(sisa/jangkaWaktu), sourceRefId:ar.id, akunPiutangId, dpp, ppn, uangMuka:0, biayaAdmin:0};
+      kopPinjamanList.push(pinjaman);
+    }
+    arReceiptList.push(ar);
+    /* Jumlah Bayar periode ini otomatis langsung tercatat sebagai potongan cicilan (Dipotong Masa) —
+       tidak perlu lagi dicatat manual di menu 11. Koperasi > Dipotong Masa. */
+    const cicilanEntry = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('potonganKoperasi'), tanggal, anggotaId, pinjamanId:pinjaman.id, jumlah, akunKasBankId:null, keterangan:'Otomatis dari Penerimaan Penjualan '+ar.noBukti};
+    kopCicilanList.push(cicilanEntry);
+    ar.kopCicilanId = cicilanEntry.id;
+    save.arReceipt(); save.kopPinjaman(); save.kopCicilan();
   } else if(metode==='uangmuka'){
     if(!role('uangMukaPenjualan')){ alert('Akun Uang Muka Penjualan belum diatur di Pengaturan > Akun Penting.'); return; }
     const sisaUM = umPenjualanSisa(customerId);
@@ -5751,15 +5783,23 @@ document.getElementById('formARReceipt').addEventListener('submit', e=>{
   document.getElementById('arAkunPiutangKopField').style.display='none'; document.getElementById('arUangMukaInfo').style.display='none';
   document.getElementById('arJangkaWaktu').readOnly=false; document.getElementById('arJumlah').readOnly=false;
   document.getElementById('arCicilanInfo').style.display='none'; document.getElementById('arCicilanInfo').innerHTML='';
-  renderARReceipt(); renderPenjualan(); renderUMPenjualan();
+  renderARReceipt(); renderPenjualan(); renderUMPenjualan(); renderKopPinjaman(); renderDipotongMasa();
 });
 function hapusARReceipt(id){
   const r = arReceiptList.find(x=>x.id===id); if(!r) return;
   if(cekTerkunciDanTolak(r.tanggal)) return;
   if(!confirm('Hapus penerimaan ini?')) return;
   arReceiptList=arReceiptList.filter(x=>x.id!==id); save.arReceipt();
-  if(r.metode==='koperasi'){ const p=kopPinjamanList.find(x=>x.sourceRefId===r.id); if(p) cascadeHapusPinjaman(p.id); }
-  renderARReceipt(); renderPenjualan(); renderUMPenjualan();
+  if(r.metode==='koperasi'){
+    /* Kalau penerimaan ini yang pertama kali membuat Pinjaman Koperasi untuk invoice ini, hapus
+       pinjamannya sekalian beserta seluruh riwayat potongannya. Kalau ini cuma penerimaan periode
+       berikutnya (pinjamannya sudah dibuat oleh penerimaan sebelumnya), cukup hapus potongan
+       otomatis milik penerimaan ini saja — pinjaman & potongan periode lain tetap ada. */
+    const p = kopPinjamanList.find(x=>x.sourceRefId===r.id);
+    if(p){ cascadeHapusPinjaman(p.id); }
+    else if(r.kopCicilanId){ kopCicilanList = kopCicilanList.filter(c=>c.id!==r.kopCicilanId); save.kopCicilan(); }
+  }
+  renderARReceipt(); renderPenjualan(); renderUMPenjualan(); renderKopPinjaman(); renderDipotongMasa();
 }
 
 function renderLaporanPiutang(){
