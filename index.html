@@ -737,7 +737,7 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Termin (hari, opsional)</label><input type="number" id="sTermin" min="0" placeholder="mis. 30" style="min-width:110px;"></div>
           <div class="field"><label>Keterangan</label><input type="text" id="sKeterangan" style="min-width:160px;"></div>
         </div>
-        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini). Kalau Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi, field <b>Nama Anggota/Karyawan</b> dan <b>Cicilan (bulan)</b> akan muncul (opsional) — kalau diisi, nanti di menu <b>Penerimaan Penjualan (Pelunasan Piutang)</b>, Metode Penerimaan, Nama Anggota, Sub-akun Piutang, dan Jangka Waktu (bulan) akan otomatis terisi mengikuti invoice ini, dan Jumlah Bayar otomatis terisi sebesar sisa tagihan dibagi jumlah cicilan tersebut.</p>
+        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini). Kalau Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi, field <b>Nama Anggota/Karyawan</b> dan <b>Cicilan (bulan)</b> akan muncul (opsional) — kalau diisi, nanti di menu <b>Penerimaan Penjualan (Pelunasan Piutang)</b>, Metode Penerimaan, Nama Anggota, Sub-akun Piutang, dan Jangka Waktu (bulan) akan otomatis terisi mengikuti invoice ini, dan Jumlah Bayar otomatis terisi sebesar seluruh sisa tagihan (langsung Lunas &amp; berpindah jadi Piutang/Pinjaman Koperasi, terjadwal per bulan sesuai Cicilan — dicatat bertahap tiap periode di menu <b>11. Koperasi &gt; Dipotong Masa</b>). Kalau mau menghapus transaksi ini, hapus dari menu Penerimaan Penjualan, bukan langsung dari menu Koperasi.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Jenis</th><th>Nama Barang/Jasa</th><th>Jumlah</th><th>Harga</th><th>Total Harga</th><th>Aksi</th></tr></thead>
           <tbody id="sItemsWrap"></tbody>
@@ -5607,12 +5607,15 @@ document.getElementById('arCustomer').addEventListener('change', ()=>{
 });
 document.getElementById('arInvoice').addEventListener('change', applyAutoKoperasiLink);
 /* Kalau Pelanggan terhubung ke Anggota/Karyawan Koperasi (menu 4. Data Pelanggan), otomatis isi
+/* Kalau Pelanggan terhubung ke Anggota/Karyawan Koperasi (menu 4. Data Pelanggan), otomatis isi
    Metode Penerimaan = "Piutang Anggota Koperasi" beserta nama anggota & sub-akun piutangnya
    (kalau invoice sudah pakai Akun Piutang yang sama), supaya tidak perlu jurnal manual/cari NIP sendiri.
    Kalau invoice ini juga sudah diisi Cicilan (bulan) saat Invoice Penjualan dibuat, Jangka Waktu (bulan)
-   dan Jumlah Bayar otomatis terisi & DIKUNCI mengikuti cicilan tsb (Jumlah Bayar = sisa tagihan invoice
-   dibagi jumlah cicilan). Pengguna tetap bisa mengubah Metode Penerimaan manual sebelum menyimpan kalau
-   transaksi ini mau dibayar tunai/transfer biasa. */
+   otomatis terisi & DIKUNCI = jumlah cicilan tsb, dan Jumlah Bayar otomatis terisi & DIKUNCI = SELURUH
+   sisa tagihan invoice (supaya invoice langsung Lunas & seluruhnya berpindah jadi Piutang/Pinjaman
+   Koperasi, terjadwal Jangka Waktu bulan dengan angsuran/bulan = sisa tagihan ÷ cicilan — lihat
+   keterangan di bawah form). Pengguna tetap bisa mengubah Metode Penerimaan manual sebelum menyimpan
+   kalau transaksi ini mau dibayar tunai/transfer biasa. */
 function applyAutoKoperasiLink(){
   const customerId = document.getElementById('arCustomer').value;
   const c = customerId ? getCustomer(customerId) : null;
@@ -5630,7 +5633,7 @@ function applyAutoKoperasiLink(){
   jumlahField.readOnly = locked;
   if(locked){
     jangkaField.value = cicilan;
-    jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)/cicilan));
+    jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)));
   } else if(inv && (!jumlahField.value || parseRibuan(jumlahField.value)===0)){
     jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)));
   }
@@ -5659,7 +5662,7 @@ function updateArCicilanInfo(){
   if(document.getElementById('arMetode').value==='koperasi' && inv && anggotaId && cicilan){
     const sisa = arOutstanding(inv); const angsuran = Math.round(sisa/cicilan);
     box.style.display='flex';
-    box.innerHTML = `Tagihan Invoice ${inv.noInvoice}: <b>${formatRupiah(sisa)}</b> — dicicil <b>${cicilan}x</b> — angsuran per bulan: <b>${formatRupiah(angsuran)}</b>`;
+    box.innerHTML = `Tagihan Invoice ${inv.noInvoice}: <b>${formatRupiah(sisa)}</b> — seluruhnya jadi Pinjaman/Piutang Koperasi, dicicil <b>${cicilan}x</b> — angsuran per bulan: <b>${formatRupiah(angsuran)}</b> (dicatat bertahap di menu 11. Koperasi &gt; Dipotong Masa setiap periode)`;
   } else {
     box.style.display='none'; box.innerHTML='';
   }
@@ -8118,11 +8121,11 @@ function renderKopPinjaman(){
 }
 function hapusKopPinjaman(id){
   const p = kopPinjamanList.find(x=>x.id===id); if(!p) return;
+  if(p.tipe==='penjualan'){ alert('Pinjaman/Piutang Koperasi dari Penjualan tidak bisa dihapus langsung dari sini. Hapus melalui menu 4. Penjualan > Penerimaan Penjualan (Pelunasan Piutang) — hapus baris penerimaannya, otomatis pinjaman & riwayat potongan terkait ikut terhapus.'); return; }
   if(kopCicilanList.some(c=>c.pinjamanId===id)){ alert('Tidak dapat menghapus pinjaman yang sudah memiliki potongan/pelunasan. Hapus riwayat potongan terkait terlebih dahulu di Dipotong Masa.'); return; }
-  if(!confirm('Hapus pinjaman ini beserta transaksi sumbernya (Kas & Bank / Pembayaran / Penerimaan terkait)?')) return;
+  if(!confirm('Hapus pinjaman ini beserta transaksi sumbernya (Kas & Bank / Pembayaran terkait)?')) return;
   if(p.tipe==='kas'){ kasBankList = kasBankList.filter(k=>k.id!==p.sourceRefId); save.kasbank(); }
   else if(p.tipe==='pembelian'){ apPaymentList = apPaymentList.filter(r=>r.id!==p.sourceRefId); save.apPayment(); }
-  else if(p.tipe==='penjualan'){ arReceiptList = arReceiptList.filter(r=>r.id!==p.sourceRefId); save.arReceipt(); }
   kopPinjamanList = kopPinjamanList.filter(x=>x.id!==id); save.kopPinjaman();
   renderKopPinjaman(); renderKBPembayaran(); renderKBPenerimaan(); renderAPPayment(); renderARReceipt(); renderPembelian(); renderPenjualan();
 }
@@ -8231,7 +8234,7 @@ function renderRiwayatPotongan(){
     <td class="txt">${akunLabel(c.akunKasBankId)}</td><td>${formatRupiah(c.jumlah)}</td>
     <td class="txt"><button type="button" class="btn-danger" onclick="hapusPotongan('${c.id}')">Hapus</button></td></tr>`; }).join('');
 }
-function hapusPotongan(id){ const c=kopCicilanList.find(x=>x.id===id); if(!c) return; if(cekTerkunciDanTolak(c.tanggal)) return; if(!confirm('Hapus catatan potongan ini?')) return; kopCicilanList=kopCicilanList.filter(x=>x.id!==id); save.kopCicilan(); renderDipotongMasa(); renderKopPinjaman(); }
+function hapusPotongan(id){ const c=kopCicilanList.find(x=>x.id===id); if(!c) return; const p=kopPinjamanList.find(x=>x.id===c.pinjamanId); if(p && p.tipe==='penjualan'){ alert('Potongan dari Pinjaman/Piutang Koperasi hasil Penjualan tidak bisa dihapus langsung dari sini. Hapus melalui menu 4. Penjualan > Penerimaan Penjualan (Pelunasan Piutang).'); return; } if(cekTerkunciDanTolak(c.tanggal)) return; if(!confirm('Hapus catatan potongan ini?')) return; kopCicilanList=kopCicilanList.filter(x=>x.id!==id); save.kopCicilan(); renderDipotongMasa(); renderKopPinjaman(); }
 
 function renderKopLaporanTunai(){
   const rows = kopPinjamanList.filter(p=>p.tipe==='kas').sort(byTanggalSeq);
