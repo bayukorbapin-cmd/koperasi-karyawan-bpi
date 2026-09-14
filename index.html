@@ -871,8 +871,8 @@ tfoot td.txt{text-align:left;}
     <p class="page-sub" style="margin-top:-6px;">Kalau baru menambah/mengubah invoice, pelanggan, atau data anggota koperasi di menu lain dan daftarnya belum muncul di sini, klik <b>Refresh Data</b>.</p>
     <div class="card">
       <h3 style="margin-top:0;">Invoice Piutang Koperasi Belum Lunas</h3>
-      <p class="hint" style="margin-top:-6px;">Menampilkan semua invoice Piutang Koperasi yang belum lunas. Pilih <b>Pelanggan</b> di form di bawah untuk mempersempit daftar ke pelanggan tersebut saja. Klik <b>Posting</b> untuk menagihkan sisa piutang invoice ini ke Piutang Anggota Koperasi — boleh sebagian (dicicil/ditagih bertahap) atau langsung sisa penuh, lalu tentukan Jangka Waktu cicilan anggotanya.</p>
-      <div class="table-scroll"><table><thead><tr><th class="txt">No. Invoice</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Akun Piutang</th><th>Sisa Piutang</th><th>Aksi</th></tr></thead>
+      <p class="hint" style="margin-top:-6px;">Menampilkan semua invoice Piutang Koperasi yang belum lunas. Pilih <b>Pelanggan</b> di form di bawah untuk mempersempit daftar ke pelanggan tersebut saja. Kolom <b>Anggota/Karyawan</b> otomatis terisi kalau invoice/pelanggan sudah terhubung ke data anggota (bisa diganti manual), kolom <b>Sub-akun Piutang</b> dan <b>Jangka Waktu (bulan)</b> juga bisa disesuaikan langsung per baris sebelum diposting. Klik <b>Posting</b> untuk menagihkan sisa piutang invoice ini ke Piutang Anggota Koperasi — boleh sebagian (dicicil/ditagih bertahap) atau langsung sisa penuh.</p>
+      <div class="table-scroll"><table><thead><tr><th class="txt">No. Invoice</th><th>Tanggal</th><th class="txt">Pelanggan</th><th class="txt">Akun Piutang</th><th class="txt">Anggota/Karyawan (NIP — Nama)</th><th class="txt">Sub-akun Piutang (misal: Piutang Penj Kop Toko)</th><th>Jangka Waktu (bulan)</th><th>Sisa Piutang</th><th>Aksi</th></tr></thead>
       <tbody id="tbodyARKoperasiBelumLunas"></tbody></table></div>
       <div class="empty" id="emptyARKoperasiBelumLunas" style="display:none;">Tidak ada invoice Piutang Koperasi yang belum lunas.</div>
     </div>
@@ -5677,37 +5677,55 @@ function renderARKoperasiBelumLunas(){
   if(!rows.length){ tbody.innerHTML=''; empty.style.display='block';
     empty.textContent = customerId ? 'Pelanggan ini tidak memiliki invoice Piutang Koperasi yang belum lunas.' : 'Tidak ada invoice Piutang Koperasi yang belum lunas.';
     return; } empty.style.display='none';
+  const anggotaAktif = kopAnggotaList.filter(a=>!a.tanggalKeluar);
+  const anggotaOpts = anggotaAktif.map(a=>`<option value="${a.id}">${a.nip} — ${a.nama}</option>`).join('');
+  const subakunOpts = akunList.slice().sort(kodeSort).filter(a=>a.isPiutangKop).map(a=>`<option value="${a.id}">${a.kode} — ${a.nama}</option>`).join('');
   tbody.innerHTML = rows.map(inv=>{ const c=getCustomer(inv.customerId);
     return `<tr><td class="txt">${inv.noInvoice}</td><td class="txt">${formatTanggal(inv.tanggal)}</td>
     <td class="txt">${c?c.kode+' — '+c.nama:'-'}</td><td class="txt">${akunLabel(inv.piutangAkunId)}</td>
+    <td class="txt"><select id="arKopAnggota_${inv.id}" style="min-width:170px;">${anggotaAktif.length?('<option value="">— pilih —</option>'+anggotaOpts):'<option value="">Belum ada data anggota aktif</option>'}</select></td>
+    <td class="txt"><select id="arKopSubakun_${inv.id}" style="min-width:190px;">${subakunOpts||'<option value="">Belum ada sub-akun piutang koperasi</option>'}</select></td>
+    <td><input type="number" id="arKopJangka_${inv.id}" min="1" value="12" style="width:80px;"></td>
     <td>${formatRupiah(arOutstanding(inv))}</td>
     <td class="txt"><button type="button" class="btn-primary" onclick="postingARKoperasi('${inv.id}')">Posting</button></td></tr>`; }).join('');
+  /* Auto-isi pilihan Anggota/Karyawan & Sub-akun Piutang tiap baris: dari Invoice-nya sendiri
+     (dipilih saat Invoice Penjualan dibuat), baru kalau invoice tidak punya, pakai link
+     Pelanggan → Anggota/Karyawan Koperasi (menu Data Pelanggan). Tetap bisa diganti manual. */
+  rows.forEach(inv=>{
+    const c=getCustomer(inv.customerId);
+    const defAnggotaId = inv.anggotaId || (c && c.anggotaId) || '';
+    const selA=document.getElementById('arKopAnggota_'+inv.id);
+    if(selA && defAnggotaId && anggotaAktif.some(a=>a.id===defAnggotaId)) selA.value = defAnggotaId;
+    const selS=document.getElementById('arKopSubakun_'+inv.id);
+    if(selS && inv.piutangAkunId){ const akun=getAkun(inv.piutangAkunId); if(akun && akun.isPiutangKop) selS.value = inv.piutangAkunId; }
+  });
 }
 function postingARKoperasi(penjualanId){
   const inv = penjualanList.find(x=>x.id===penjualanId);
   if(!inv){ alert('Invoice tidak ditemukan (mungkin sudah dihapus). Klik Refresh Data.'); renderARKoperasiBelumLunas(); return; }
   const sisa = arOutstanding(inv);
   if(sisa <= 0.5){ alert('Invoice ini sudah lunas.'); renderARReceipt(); return; }
-  const c = getCustomer(inv.customerId);
-  const anggotaId = inv.anggotaId || (c && c.anggotaId) || null;
-  if(!anggotaId){ alert('Invoice ini belum terhubung ke Anggota/Karyawan Koperasi. Silakan pilih Pelanggan & Invoice ini secara manual di form di bawah, lalu pilih anggotanya sebelum menyimpan.'); return; }
-  const akunPiutangId = inv.piutangAkunId;
+  const anggotaSel = document.getElementById('arKopAnggota_'+penjualanId);
+  const subakunSel = document.getElementById('arKopSubakun_'+penjualanId);
+  const jangkaInput = document.getElementById('arKopJangka_'+penjualanId);
+  const anggotaId = anggotaSel ? anggotaSel.value : '';
+  if(!anggotaId){ alert('Pilih dulu Anggota/Karyawan Koperasi pada kolom baris invoice ini.'); return; }
+  const akunPiutangKopId = subakunSel ? subakunSel.value : '';
+  if(!akunPiutangKopId){ alert('Pilih dulu Sub-akun Piutang pada kolom baris invoice ini.'); return; }
+  const jangkaWaktu = parseInt(jangkaInput ? jangkaInput.value : '', 10);
+  if(!jangkaWaktu || jangkaWaktu<1){ alert('Jangka Waktu (bulan) pada baris invoice ini tidak valid.'); return; }
   const jmlInput = prompt(`Invoice ${inv.noInvoice} — sisa piutang ${formatRupiah(sisa)}.\n\nMau tagih ke Piutang Koperasi berapa? (Boleh sebagian kalau ditagih bertahap/dicicil, atau langsung sisa penuh)`, String(Math.round(sisa)));
   if(jmlInput===null) return;
   const jumlah = Math.round(parseRibuan(jmlInput));
   if(!jumlah || jumlah<1){ alert('Jumlah tidak valid.'); return; }
   if(jumlah > sisa + 0.5){ alert(`Jumlah tidak boleh melebihi sisa piutang (${formatRupiah(sisa)}).`); return; }
-  const jwInput = prompt(`Posting ${formatRupiah(jumlah)} dari invoice ${inv.noInvoice} sebagai Piutang Anggota Koperasi.\n\nJangka Waktu cicilan (bulan)?`, '12');
-  if(jwInput===null) return;
-  const jangkaWaktu = parseInt(jwInput,10);
-  if(!jangkaWaktu || jangkaWaktu<1){ alert('Jangka Waktu tidak valid.'); return; }
   const tanggal = todayIso();
   if(cekTerkunciDanTolak(tanggal)) return;
-  const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId:inv.customerId, penjualanId:inv.id, metode:'koperasi', akunKasBankId:null, akunPiutangId, jumlah, keterangan:'Posting piutang ke Piutang Koperasi'};
+  const ar = {id:uid(), seq:nextSeq(), noBukti:consumeNumber('penerimaan'), tanggal, customerId:inv.customerId, penjualanId:inv.id, metode:'koperasi', akunKasBankId:null, akunPiutangId:inv.piutangAkunId, jumlah, keterangan:'Posting piutang ke Piutang Koperasi'};
   arReceiptList.push(ar); save.arReceipt();
   const invTotal = invoicePenjualanTotal(inv); const dasarBayar = Math.max(1, invTotal.total - invTotal.pph);
   const dpp = Math.round(invTotal.netto * (jumlah/dasarBayar)); const ppn = jumlah - dpp;
-  kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ar.id, akunPiutangId, dpp, ppn, uangMuka:0, biayaAdmin:0});
+  kopPinjamanList.push({id:uid(), seq:nextSeq(), noBukti:consumeNumber('pinjamanKoperasi'), tipe:'penjualan', anggotaId, tanggal, jumlah, jangkaWaktu, cicilanPerBulan:Math.round(jumlah/jangkaWaktu), sourceRefId:ar.id, akunPiutangId:akunPiutangKopId, dpp, ppn, uangMuka:0, biayaAdmin:0});
   save.kopPinjaman();
   renderARReceipt(); renderPenjualan(); renderUMPenjualan();
   alert(`Berhasil diposting sebagai penerimaan ${ar.noBukti}.`);
