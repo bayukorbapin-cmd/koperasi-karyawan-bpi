@@ -731,11 +731,12 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Pelanggan</label><select id="sCustomer" required style="min-width:220px;"></select></div>
           <div class="field"><label>Akun Piutang</label><select id="sAkunPiutang" style="min-width:220px;"></select></div>
           <div class="field" id="sAnggotaKoperasiField" style="display:none;"><label>Nama Anggota/Karyawan</label><select id="sAnggotaKoperasi" style="min-width:220px;"></select></div>
+          <div class="field" id="sCicilanField" style="display:none;"><label>Cicilan (bulan)</label><input type="number" id="sCicilan" min="1" value="12" style="min-width:100px;"></div>
           <div class="field"><label>Projek</label><select id="sProjek" style="min-width:180px;"></select></div>
           <div class="field"><label>Termin (hari, opsional)</label><input type="number" id="sTermin" min="0" placeholder="mis. 30" style="min-width:110px;"></div>
           <div class="field"><label>Keterangan</label><input type="text" id="sKeterangan" style="min-width:160px;"></div>
         </div>
-        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini). Kalau Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi, field <b>Nama Anggota/Karyawan</b> akan muncul (opsional) — kalau diisi, nanti di menu <b>Penerimaan Penjualan (Pelunasan Piutang)</b>, Metode Penerimaan, Nama Anggota, dan Sub-akun Piutang akan otomatis terisi mengikuti invoice ini; tinggal isi Jangka Waktu, dan Jumlah Bayar sudah otomatis terisi juga.</p>
+        <p class="hint" style="margin-top:-6px;">Termin opsional — kalau diisi, jadi rekomendasi tanggal jatuh tempo di menu <b>14. Finance &gt; Cash Flow</b>. Tidak diisi pun invoice tetap bisa disimpan seperti biasa. Akun Piutang opsional — untuk mengelompokkan piutang per jenis transaksi (mis. Piutang Bengkel, Piutang Projek Konstruksi, dsb); kalau tidak dipilih, otomatis memakai akun <b>Piutang Usaha</b>. Daftar akun di sini sama dengan sub-akun Piutang Koperasi di menu 2a. Akun Perkiraan (tandai "Sub-akun Piutang Koperasi" pada akun baru agar muncul di sini). Kalau Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi, field <b>Nama Anggota/Karyawan</b> dan <b>Cicilan (bulan)</b> akan muncul (opsional) — kalau diisi, nanti di menu <b>Penerimaan Penjualan (Pelunasan Piutang)</b>, Metode Penerimaan, Nama Anggota, Sub-akun Piutang, dan Jangka Waktu (bulan) akan otomatis terisi mengikuti invoice ini, dan Jumlah Bayar otomatis terisi sebesar sisa tagihan dibagi jumlah cicilan tersebut.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Jenis</th><th>Nama Barang/Jasa</th><th>Jumlah</th><th>Harga</th><th>Total Harga</th><th>Aksi</th></tr></thead>
           <tbody id="sItemsWrap"></tbody>
@@ -3925,15 +3926,18 @@ function populateAkunSelects(){
     toggleSAnggotaKoperasiField();
   }
 }
-/* Menampilkan/menyembunyikan field Nama Anggota/Karyawan di Invoice Penjualan
+/* Menampilkan/menyembunyikan field Nama Anggota/Karyawan & Cicilan (bulan) di Invoice Penjualan
    berdasarkan apakah Akun Piutang yang dipilih adalah sub-akun Piutang Koperasi. */
 function toggleSAnggotaKoperasiField(){
   const sel = document.getElementById('sAkunPiutang');
   const field = document.getElementById('sAnggotaKoperasiField');
+  const cicilanField = document.getElementById('sCicilanField');
   if(!sel || !field) return;
   const akun = sel.value ? getAkun(sel.value) : null;
-  field.style.display = (akun && akun.isPiutangKop) ? 'flex' : 'none';
-  if(!(akun && akun.isPiutangKop)){ const s=document.getElementById('sAnggotaKoperasi'); if(s) s.value=''; }
+  const isKop = !!(akun && akun.isPiutangKop);
+  field.style.display = isKop ? 'flex' : 'none';
+  if(cicilanField) cicilanField.style.display = isKop ? 'flex' : 'none';
+  if(!isKop){ const s=document.getElementById('sAnggotaKoperasi'); if(s) s.value=''; }
 }
 document.getElementById('sAkunPiutang').addEventListener('change', toggleSAnggotaKoperasiField);
 function kodeSort(a,b){ return a.kode.localeCompare(b.kode, undefined, {numeric:true}); }
@@ -5171,6 +5175,7 @@ function editPenjualan(id){
   document.getElementById('sAkunPiutang').value = inv.piutangAkunId||'';
   toggleSAnggotaKoperasiField();
   document.getElementById('sAnggotaKoperasi').value = inv.anggotaId||'';
+  document.getElementById('sCicilan').value = inv.cicilan||12;
   document.getElementById('sKodeTransaksi').value = inv.kodeTransaksi||'01';
   document.getElementById('sTermin').value = (inv.termin!==null && inv.termin!==undefined) ? inv.termin : '';
   sPenjualanItems = (inv.items||[]).map(it=>({tipe:it.tipe, barangId:it.barangId, deskripsiJasa:it.deskripsiJasa, qty:it.qty, harga:it.harga, hargaManual:true}));
@@ -5197,6 +5202,7 @@ document.getElementById('formPenjualan').addEventListener('submit', e=>{
   const piutangAkunId=document.getElementById('sAkunPiutang').value||null;
   const piutangAkunTerpilih = piutangAkunId ? getAkun(piutangAkunId) : null;
   const anggotaId = (piutangAkunTerpilih && piutangAkunTerpilih.isPiutangKop) ? (document.getElementById('sAnggotaKoperasi').value||null) : null;
+  const cicilan = (piutangAkunTerpilih && piutangAkunTerpilih.isPiutangKop) ? (parseInt(document.getElementById('sCicilan').value,10)||1) : null;
   const keterangan=document.getElementById('sKeterangan').value.trim();
   const terminVal=document.getElementById('sTermin').value; const termin = terminVal!=='' ? parseInt(terminVal,10) : null;
   const kodeTransaksi=document.getElementById('sKodeTransaksi').value||'01';
@@ -5223,11 +5229,11 @@ document.getElementById('formPenjualan').addEventListener('submit', e=>{
   if(removedInv){
     if(!noInvoice) noInvoice = removedInv.noInvoice;
     if(!noFaktur) noFaktur = removedInv.noFaktur;
-    penjualanList.splice(removedIdx,0,{...removedInv, noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, piutangAkunId, anggotaId, keterangan, termin, kodeTransaksi, items});
+    penjualanList.splice(removedIdx,0,{...removedInv, noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, piutangAkunId, anggotaId, cicilan, keterangan, termin, kodeTransaksi, items});
   } else {
     if(!noInvoice) noInvoice = consumeNumber('invoicePenjualan');
     if(!noFaktur && ppn) noFaktur = consumeNumber('fakturPenjualan');
-    penjualanList.push({id:uid(), seq:nextSeq(), noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, piutangAkunId, anggotaId, keterangan, termin, kodeTransaksi, items});
+    penjualanList.push({id:uid(), seq:nextSeq(), noInvoice, noFaktur, tanggal, customerId, projekId, pesananId, diskon, ppn, ppnPercent, pph, pphPercent, pphAkunId, piutangAkunId, anggotaId, cicilan, keterangan, termin, kodeTransaksi, items});
   }
   save.penjualan();
   e.target.reset();
@@ -5598,6 +5604,15 @@ document.getElementById('arCustomer').addEventListener('change', ()=>{
   applyAutoKoperasiLink();
 });
 document.getElementById('arInvoice').addEventListener('change', applyAutoKoperasiLink);
+/* Kalau Jangka Waktu (bulan) diubah manual saat Metode Penerimaan = Piutang Anggota Koperasi,
+   Jumlah Bayar ikut dihitung ulang = sisa tagihan invoice terpilih dibagi Jangka Waktu tsb. */
+document.getElementById('arJangkaWaktu').addEventListener('input', ()=>{
+  if(document.getElementById('arMetode').value!=='koperasi') return;
+  const invoiceId = document.getElementById('arInvoice').value;
+  const inv = invoiceId ? penjualanList.find(x=>x.id===invoiceId) : null;
+  const jangka = parseInt(document.getElementById('arJangkaWaktu').value,10)||1;
+  if(inv) document.getElementById('arJumlah').value = Math.round(arOutstanding(inv)/jangka);
+});
 /* Kalau Pelanggan terhubung ke Anggota/Karyawan Koperasi (menu 4. Data Pelanggan), otomatis isi
    Metode Penerimaan = "Piutang Anggota Koperasi" beserta nama anggota & sub-akun piutangnya
    (kalau invoice sudah pakai Akun Piutang yang sama), supaya tidak perlu jurnal manual/cari NIP sendiri.
@@ -5608,11 +5623,19 @@ function applyAutoKoperasiLink(){
   const invoiceId = document.getElementById('arInvoice').value;
   const inv = invoiceId ? penjualanList.find(x=>x.id===invoiceId) : null;
   const jumlahField = document.getElementById('arJumlah');
-  if(inv && (!jumlahField.value || parseFloat(jumlahField.value)===0)) jumlahField.value = Math.round(arOutstanding(inv));
+  const jangkaField = document.getElementById('arJangkaWaktu');
   /* Prioritas sumber Anggota/Karyawan: dari Invoice-nya sendiri (dipilih saat Invoice Penjualan dibuat,
      kalau Akun Piutang-nya sub-akun Piutang Koperasi), baru kalau invoice tidak punya, pakai link
      Pelanggan → Anggota/Karyawan Koperasi (menu Data Pelanggan). */
   const anggotaId = (inv && inv.anggotaId) ? inv.anggotaId : ((c && c.anggotaId) ? c.anggotaId : null);
+  /* Cicilan (bulan) yang diisi saat Invoice Penjualan dibuat -> otomatis jadi Jangka Waktu (bulan) di sini,
+     dan Jumlah Bayar = sisa tagihan invoice dibagi jumlah cicilan tsb. */
+  const cicilan = (inv && inv.cicilan) ? inv.cicilan : null;
+  if(anggotaId && cicilan && jangkaField) jangkaField.value = cicilan;
+  if(inv && (!jumlahField.value || parseFloat(jumlahField.value)===0)){
+    const sisa = arOutstanding(inv);
+    jumlahField.value = (anggotaId && cicilan) ? Math.round(sisa/cicilan) : Math.round(sisa);
+  }
   if(anggotaId){
     const metodeSel = document.getElementById('arMetode');
     metodeSel.value = 'koperasi';
