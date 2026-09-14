@@ -56,6 +56,7 @@ h3{font-size:17px; margin:0 0 14px;}
   font-family:'IBM Plex Mono',monospace; font-size:13px; background:#FBFDFF; color:var(--ink); min-width:140px;}
 .field textarea{font-family:'Inter',sans-serif; min-height:60px;}
 .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--blue); outline-offset:1px;}
+.field input[readonly]{background:var(--blue-soft); color:var(--ink-soft); cursor:not-allowed;}
 .field-check{display:flex; align-items:center; gap:8px; flex-direction:row; padding-bottom:8px;}
 .field-check input{width:16px; height:16px;}
 button{font-family:'Inter',sans-serif; font-weight:600; font-size:13px; border-radius:7px; padding:9px 16px; cursor:pointer; border:1px solid transparent;}
@@ -886,6 +887,7 @@ tfoot td.txt{text-align:left;}
           <div class="field"><label>Keterangan</label><input type="text" id="arKeterangan" style="min-width:160px;"></div>
           <button type="submit" class="btn-primary">+ Simpan Penerimaan</button>
         </div>
+        <div class="preview-box" id="arCicilanInfo" style="display:none;"></div>
       </form>
       <div class="table-scroll"><table><thead><tr><th>No. Bukti</th><th>Tanggal</th><th>Pelanggan</th><th>Invoice</th><th>Metode/Akun</th><th>Jumlah</th><th>Aksi</th></tr></thead>
       <tbody id="tbodyARReceipt"></tbody></table></div>
@@ -5604,19 +5606,13 @@ document.getElementById('arCustomer').addEventListener('change', ()=>{
   applyAutoKoperasiLink();
 });
 document.getElementById('arInvoice').addEventListener('change', applyAutoKoperasiLink);
-/* Kalau Jangka Waktu (bulan) diubah manual saat Metode Penerimaan = Piutang Anggota Koperasi,
-   Jumlah Bayar ikut dihitung ulang = sisa tagihan invoice terpilih dibagi Jangka Waktu tsb. */
-document.getElementById('arJangkaWaktu').addEventListener('input', ()=>{
-  if(document.getElementById('arMetode').value!=='koperasi') return;
-  const invoiceId = document.getElementById('arInvoice').value;
-  const inv = invoiceId ? penjualanList.find(x=>x.id===invoiceId) : null;
-  const jangka = parseInt(document.getElementById('arJangkaWaktu').value,10)||1;
-  if(inv) document.getElementById('arJumlah').value = Math.round(arOutstanding(inv)/jangka);
-});
 /* Kalau Pelanggan terhubung ke Anggota/Karyawan Koperasi (menu 4. Data Pelanggan), otomatis isi
    Metode Penerimaan = "Piutang Anggota Koperasi" beserta nama anggota & sub-akun piutangnya
    (kalau invoice sudah pakai Akun Piutang yang sama), supaya tidak perlu jurnal manual/cari NIP sendiri.
-   Pengguna tetap bisa mengubah manual sebelum menyimpan kalau transaksi ini mau dibayar tunai/transfer. */
+   Kalau invoice ini juga sudah diisi Cicilan (bulan) saat Invoice Penjualan dibuat, Jangka Waktu (bulan)
+   dan Jumlah Bayar otomatis terisi & DIKUNCI mengikuti cicilan tsb (Jumlah Bayar = sisa tagihan invoice
+   dibagi jumlah cicilan). Pengguna tetap bisa mengubah Metode Penerimaan manual sebelum menyimpan kalau
+   transaksi ini mau dibayar tunai/transfer biasa. */
 function applyAutoKoperasiLink(){
   const customerId = document.getElementById('arCustomer').value;
   const c = customerId ? getCustomer(customerId) : null;
@@ -5628,13 +5624,15 @@ function applyAutoKoperasiLink(){
      kalau Akun Piutang-nya sub-akun Piutang Koperasi), baru kalau invoice tidak punya, pakai link
      Pelanggan → Anggota/Karyawan Koperasi (menu Data Pelanggan). */
   const anggotaId = (inv && inv.anggotaId) ? inv.anggotaId : ((c && c.anggotaId) ? c.anggotaId : null);
-  /* Cicilan (bulan) yang diisi saat Invoice Penjualan dibuat -> otomatis jadi Jangka Waktu (bulan) di sini,
-     dan Jumlah Bayar = sisa tagihan invoice dibagi jumlah cicilan tsb. */
   const cicilan = (inv && inv.cicilan) ? inv.cicilan : null;
-  if(anggotaId && cicilan && jangkaField) jangkaField.value = cicilan;
-  if(inv && (!jumlahField.value || parseFloat(jumlahField.value)===0)){
-    const sisa = arOutstanding(inv);
-    jumlahField.value = (anggotaId && cicilan) ? Math.round(sisa/cicilan) : Math.round(sisa);
+  const locked = !!(anggotaId && cicilan);
+  jangkaField.readOnly = locked;
+  jumlahField.readOnly = locked;
+  if(locked){
+    jangkaField.value = cicilan;
+    jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)/cicilan));
+  } else if(inv && (!jumlahField.value || parseRibuan(jumlahField.value)===0)){
+    jumlahField.value = formatRibuan(Math.round(arOutstanding(inv)));
   }
   if(anggotaId){
     const metodeSel = document.getElementById('arMetode');
@@ -5646,6 +5644,25 @@ function applyAutoKoperasiLink(){
       if(akun && akun.isPiutangKop) document.getElementById('arAkunPiutangKop').value = inv.piutangAkunId;
     }
   }
+  updateArCicilanInfo();
+}
+/* Menampilkan keterangan ringkas di bawah form, mis. "Tagihan Invoice INV-0001: Rp100.000 — dicicil 2x
+   — angsuran per bulan: Rp50.000", supaya jelas kenapa Jangka Waktu & Jumlah Bayar terkunci otomatis. */
+function updateArCicilanInfo(){
+  const box = document.getElementById('arCicilanInfo');
+  const invoiceId = document.getElementById('arInvoice').value;
+  const inv = invoiceId ? penjualanList.find(x=>x.id===invoiceId) : null;
+  const customerId = document.getElementById('arCustomer').value;
+  const c = customerId ? getCustomer(customerId) : null;
+  const anggotaId = (inv && inv.anggotaId) ? inv.anggotaId : ((c && c.anggotaId) ? c.anggotaId : null);
+  const cicilan = (inv && inv.cicilan) ? inv.cicilan : null;
+  if(document.getElementById('arMetode').value==='koperasi' && inv && anggotaId && cicilan){
+    const sisa = arOutstanding(inv); const angsuran = Math.round(sisa/cicilan);
+    box.style.display='flex';
+    box.innerHTML = `Tagihan Invoice ${inv.noInvoice}: <b>${formatRupiah(sisa)}</b> — dicicil <b>${cicilan}x</b> — angsuran per bulan: <b>${formatRupiah(angsuran)}</b>`;
+  } else {
+    box.style.display='none'; box.innerHTML='';
+  }
 }
 document.getElementById('arMetode').addEventListener('change', e=>{
   const kop = e.target.value==='koperasi';
@@ -5655,7 +5672,9 @@ document.getElementById('arMetode').addEventListener('change', e=>{
   document.getElementById('arJangkaField').style.display = kop ? 'flex' : 'none';
   document.getElementById('arAkunPiutangKopField').style.display = kop ? 'flex' : 'none';
   document.getElementById('arAkunKasBank').required = !(kop||um);
+  if(!kop){ document.getElementById('arJangkaWaktu').readOnly=false; document.getElementById('arJumlah').readOnly=false; }
   updateArUangMukaInfo();
+  updateArCicilanInfo();
 });
 function updateArUangMukaInfo(){
   const box = document.getElementById('arUangMukaInfo');
@@ -5727,6 +5746,8 @@ document.getElementById('formARReceipt').addEventListener('submit', e=>{
   e.target.reset(); document.getElementById('arMetode').value='kasbank'; document.getElementById('arAkunKasBankField').style.display='flex';
   document.getElementById('arAnggotaField').style.display='none'; document.getElementById('arJangkaField').style.display='none';
   document.getElementById('arAkunPiutangKopField').style.display='none'; document.getElementById('arUangMukaInfo').style.display='none';
+  document.getElementById('arJangkaWaktu').readOnly=false; document.getElementById('arJumlah').readOnly=false;
+  document.getElementById('arCicilanInfo').style.display='none'; document.getElementById('arCicilanInfo').innerHTML='';
   renderARReceipt(); renderPenjualan(); renderUMPenjualan();
 });
 function hapusARReceipt(id){
